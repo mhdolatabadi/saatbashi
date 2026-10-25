@@ -10,6 +10,7 @@ import ir.mhdolatabadi.atid.notification.PrayerAlertScheduler
 import ir.mhdolatabadi.atid.util.LocationUtils
 import ir.mhdolatabadi.atid.util.PrayerTimes
 import ir.mhdolatabadi.atid.util.PrayerTimesCalculator
+import ir.mhdolatabadi.atid.widget.PrayerWidget
 import java.util.Calendar
 
 data class PrayerTimesUiState(
@@ -57,6 +58,7 @@ class NotificationsViewModel(application: Application) : AndroidViewModel(applic
         DailyNotificationHelper.show(context, times)
         // The place may have changed, which moves every adhan.
         PrayerAlertScheduler.reschedule(context)
+        PrayerWidget.update(context)
     }
 
     /** Turns a prayer's adhan reminder on or off. */

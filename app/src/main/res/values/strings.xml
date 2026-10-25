@@ -40,4 +40,10 @@
     <string name="prayer_alert_exact_hint">برای اعلان سر دقیقه، اجازه‌ی «هشدارها و یادآوری‌ها» را بدهید.</string>
     <string name="prayer_alert_blocked_hint">اعلان‌های ساعت‌باشی خاموش است؛ برای یادآوری اذان روشنش کنید.</string>
     <string name="prayer_next_label">بعدی</string>
+
+    <string name="widget_label">تاریخ و اذان بعدی</string>
+    <string name="widget_description">تاریخ امروز به سه تقویم و زمان اذان بعدی</string>
+    <string name="widget_other_dates">%1$s (تقریبی) • %2$s</string>
+    <string name="widget_next_adhan">%1$s ساعت %2$s</string>
+    <string name="widget_place">%1$s • زمان تقریبی</string>
 </resources>
