@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { ANDROID_RELEASE } from '../seo';
 import './SiteChrome.css';
-
-const ANDROID_RELEASE = 'https://github.com/mhdolatabadi/atid/releases/latest';
 
 const navLinks = [
   { to: '/app/calendar', label: 'تقویم' },
