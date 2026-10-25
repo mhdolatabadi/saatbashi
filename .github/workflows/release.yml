@@ -89,13 +89,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build release APK
+      - name: Build release APK and bundle
         env:
           ATID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ATID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ATID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: >-
-          ./gradlew testDebugUnitTest assembleRelease
+          ./gradlew testDebugUnitTest assembleRelease bundleRelease
           -PreleaseVersionName=${{ steps.release_tag.outputs.version }}
           -PreleaseVersionCode=${{ steps.release_tag.outputs.code }}
 
@@ -115,6 +115,11 @@ jobs:
           grep -Fq "versionName='$RELEASE_VERSION'" <<< "$metadata"
           mkdir -p release
           cp "$apk" "release/Saatbashi-${RELEASE_TAG}.apk"
+          # Stores that take bundles (Google Play, Cafe Bazaar) get the same signed build as an AAB.
+          aab=app/build/outputs/bundle/release/app-release.aab
+          test -f "$aab" || { echo "::error::Signed release bundle was not produced" >&2; exit 1; }
+          jarsigner -verify "$aab" | grep -q 'jar verified'
+          cp "$aab" "release/Saatbashi-${RELEASE_TAG}.aab"
 
       - name: Remove keystore
         if: always()
@@ -126,5 +131,7 @@ jobs:
           tag_name: ${{ steps.release_tag.outputs.name }}
           target_commitish: ${{ steps.release_tag.outputs.sha }}
           make_latest: legacy
-          files: release/Saatbashi-${{ steps.release_tag.outputs.name }}.apk
+          files: |
+            release/Saatbashi-${{ steps.release_tag.outputs.name }}.apk
+            release/Saatbashi-${{ steps.release_tag.outputs.name }}.aab
           generate_release_notes: true

@@ -48,6 +48,7 @@ jobs:
           grep -q '<loc>https://atid.example.com/app/calendar</loc>' dist/sitemap.xml
           grep -q 'rel="canonical" href="https://atid.example.com/"' dist/index.html
           grep -q 'Sitemap: https://atid.example.com/sitemap.xml' dist/robots.txt
+          grep -q '<loc>https://atid.example.com/privacy</loc>' dist/sitemap.xml
           test -f dist/404.html
 
   android:

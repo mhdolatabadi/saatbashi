@@ -36,6 +36,7 @@ describe('unobstructed page chrome', () => {
     expect(html).not.toContain('قضا');
     expect(html).toContain('/app/calendar');
     expect(html).toContain('/app/prayer-times');
+    expect(html).toContain('href="/privacy"');
   });
 
 });

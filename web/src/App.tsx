@@ -10,6 +10,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { CalendarGuidePage, DateConverterGuidePage } from './pages/SeoGuidePages';
 import { CalendarMonthPage, CalendarYearPage } from './pages/CalendarArchivePages';
 import { PrayerMonthPage } from './pages/PrayerMonthPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 import { CityPrayerTimesPage, PrayerTimesIndexPage } from './pages/CityPrayerTimesPage';
 import { syncPageHead } from './lib/syncPageHead';
 
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/calendar/:year" element={<CalendarYearPage />} />
         <Route path="/calendar/:year/:month" element={<CalendarMonthPage />} />
         <Route path="/date-converter" element={<DateConverterGuidePage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/prayer-times" element={<PrayerTimesIndexPage />} />
         <Route path="/prayer-times/:city" element={<CityPrayerTimesPage />} />
         <Route path="/prayer-times/:city/:year/:month" element={<PrayerMonthPage />} />

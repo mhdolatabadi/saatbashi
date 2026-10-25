@@ -1,0 +1,45 @@
+name: Store screenshots
+
+# Captures the Android store screenshots from the real app on an emulator. Run it by hand before a
+# store update; it also runs on PRs that change the script, so the capture itself stays working.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - scripts/store-screenshots.sh
+      - .github/workflows/screenshots.yml
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - run: chmod +x gradlew
+      - run: ./gradlew assembleDebug
+      - name: Capture on a Pixel 6 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: ./scripts/store-screenshots.sh app/build/outputs/apk/debug/app-debug.apk screenshots
+      - uses: actions/upload-artifact@v4
+        with:
+          name: store-screenshots
+          path: screenshots/
+          if-no-files-found: error
+          retention-days: 30

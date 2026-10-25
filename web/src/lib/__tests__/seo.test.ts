@@ -31,6 +31,10 @@ describe('search metadata', () => {
     expect(city['@graph'][1]['@type']).toBe('BreadcrumbList');
     expect(structuredDataFor('/app/home', 'https://example.test')['@graph']).toHaveLength(1);
   });
+  it('publishes an indexable privacy policy for the store listings', () => {
+    expect(prerenderRoutes).toContain('/privacy');
+    expect(metaFor('/privacy').noindex).not.toBe(true);
+  });
   it('describes the site, its publisher and the Android app on the home page', () => {
     const types = structuredDataFor('/', 'https://example.test')['@graph'].map(node => node['@type']);
     expect(types).toEqual(['WebSite', 'Organization', 'SoftwareApplication']);
