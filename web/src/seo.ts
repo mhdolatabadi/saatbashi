@@ -1,6 +1,6 @@
 import { cities } from './data/cities';
 import { calendarYears, monthPath, monthSpan, monthTitle, prayerMonthPath, prayerYears, yearPath } from './lib/calendarPages';
-import { toPersianDigits } from './lib/persianDate';
+import { monthName, toPersianDigits } from './lib/persianDate';
 import { faqs } from './data/faq';
 
 
@@ -16,6 +16,8 @@ export interface PageMeta {
   noindex?: boolean;
   /** schema.org type for the page's JSON-LD. */
   type: 'WebSite' | 'WebPage' | 'CollectionPage';
+  /** Short name for breadcrumb trails («تهران», «آبان ۱۴۰۵»), shown by search engines instead of the full title. */
+  crumb?: string;
 }
 
 const home: PageMeta = {
@@ -29,11 +31,13 @@ const pages: Record<string, PageMeta> = {
   '/': home,
   '/calendar': {
     title: 'تقویم شمسی؛ تاریخ امروز، مناسبت‌ها و تعطیلات | ساعت‌باشی',
+    crumb: 'تقویم',
     description: 'راهنمای تقویم شمسی ایران: تاریخ امروز، تقویم ماه جاری، مناسبت‌ها، تعطیلات و نمایش هم‌زمان تاریخ میلادی و قمری.',
     type: 'WebPage',
   },
   '/date-converter': {
     title: 'تبدیل تاریخ شمسی به میلادی و قمری | ساعت‌باشی',
+    crumb: 'تبدیل تاریخ',
     description: 'تبدیل آنلاین تاریخ شمسی به میلادی و قمری، میلادی به شمسی و قمری به شمسی، همراه با روز هفته.',
     type: 'WebPage',
   },
@@ -45,11 +49,13 @@ const pages: Record<string, PageMeta> = {
   },
   '/app/calendar': {
     title: 'تقویم شمسی ماه جاری | ساعت‌باشی',
+    crumb: 'تقویم ماه جاری',
     description: 'تقویم ماه جاری شمسی با مشخص بودن امروز و جمعه‌ها.',
     type: 'WebPage',
   },
   '/app/prayer-times': {
     title: 'اوقات شرعی امروز؛ اذان صبح، ظهر و مغرب | ساعت‌باشی',
+    crumb: 'اوقات شرعی امروز',
     description:
       'اوقات شرعی امروز به افق تهران یا موقعیت شما: اذان صبح، طلوع آفتاب، اذان ظهر، عصر، غروب آفتاب، اذان مغرب و عشا.',
     type: 'WebPage',
@@ -58,6 +64,7 @@ const pages: Record<string, PageMeta> = {
 
 pages['/prayer-times'] = {
   title: 'اوقات شرعی شهرهای ایران؛ اذان صبح، ظهر و مغرب امروز | ساعت‌باشی',
+  crumb: 'اوقات شرعی',
   description: 'اوقات شرعی امروز مراکز استان‌های ایران: اذان صبح، طلوع آفتاب، اذان ظهر، غروب آفتاب، اذان مغرب و نیمه‌شب شرعی.',
   type: 'CollectionPage',
 };
@@ -65,6 +72,7 @@ pages['/prayer-times'] = {
 for (const city of cities) {
   pages[`/prayer-times/${city.slug}`] = {
     title: `اوقات شرعی ${city.name} امروز؛ اذان صبح، ظهر و مغرب | ساعت‌باشی`,
+    crumb: city.name,
     description: `اوقات شرعی امروز به افق ${city.name}: اذان صبح، طلوع آفتاب، اذان ظهر، غروب آفتاب، اذان مغرب و نیمه‌شب شرعی؛ محاسبه‌ی تقریبی به روش تهران.`,
     type: 'WebPage',
   };
@@ -74,6 +82,7 @@ for (const year of calendarYears) {
   const y = toPersianDigits(year);
   pages[yearPath(year)] = {
     title: `تقویم ${y}؛ تعطیلات رسمی و مناسبت‌های سال ${y} | ساعت‌باشی`,
+    crumb: y,
     description: `تقویم سال ${y} هجری شمسی ماه‌به‌ماه با تاریخ قمری و میلادی، فهرست تعطیلات رسمی ${y} و مناسبت‌های هر ماه.`,
     type: 'CollectionPage',
   };
@@ -82,6 +91,7 @@ for (const year of calendarYears) {
     const span = monthSpan(year, month);
     pages[monthPath(year, month)] = {
       title: `تقویم ${title}؛ مناسبت‌ها و تعطیلات | ساعت‌باشی`,
+      crumb: monthName(month),
       description: `تقویم ${title} روزبه‌روز با تاریخ قمری (${span.hijri}) و میلادی (${span.gregorian})، تعطیلات رسمی و مناسبت‌های ماه.`,
       type: 'WebPage',
     };
@@ -94,6 +104,7 @@ for (const city of cities) {
       const title = monthTitle(year, month);
       pages[prayerMonthPath(city.slug, year, month)] = {
         title: `اوقات شرعی ${city.name} ${title}؛ جدول اذان صبح، ظهر و مغرب | ساعت‌باشی`,
+        crumb: title,
         description: `جدول ماهانه‌ی اوقات شرعی ${city.name} در ${title}: اذان صبح، طلوع آفتاب، اذان ظهر، غروب آفتاب، اذان مغرب و نیمه‌شب شرعی برای همه‌ی روزهای ماه؛ محاسبه‌ی تقریبی به روش تهران.`,
         type: 'WebPage',
       };
@@ -139,10 +150,6 @@ export function structuredDataFor(pathname: string, origin: string) {
     graph.push(
       { '@type': 'Organization', '@id': `${site}#organization`, name: SITE_NAME, alternateName: 'Saatbashi',
         url: site, logo: `${origin}/icon-512.png` },
-      { '@type': 'SoftwareApplication', '@id': `${site}#android`, name: SITE_NAME, operatingSystem: 'Android',
-        applicationCategory: 'LifestyleApplication', inLanguage: 'fa', downloadUrl: ANDROID_RELEASE,
-        publisher: { '@id': `${site}#organization` },
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'IRR' } },
     );
   }
   const faq = faqs[path];
@@ -163,7 +170,7 @@ export function structuredDataFor(pathname: string, origin: string) {
     page.breadcrumb = { '@id': breadcrumbId };
     graph.push({ '@type': 'BreadcrumbList', '@id': breadcrumbId,
       itemListElement: paths.map((p, i) => ({ '@type': 'ListItem', position: i + 1,
-        name: p === '/' ? SITE_NAME : metaFor(p).title.split('|')[0].trim(), item: `${origin}${p}` })) });
+        name: p === '/' ? SITE_NAME : metaFor(p).crumb ?? metaFor(p).title.split('|')[0].trim(), item: `${origin}${p}` })) });
   }
   return { '@context': 'https://schema.org', '@graph': graph };
 }
