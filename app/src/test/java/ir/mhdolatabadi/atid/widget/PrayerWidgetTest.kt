@@ -89,7 +89,7 @@ class PrayerWidgetTest {
         assertEquals("${context.getString(R.string.label_dhuhr)} ساعت ${PersianDateUtils.toPersianDigits(today.dhuhr)}", next)
         val place = view.findViewById<TextView>(R.id.widget_place).text.toString()
         assertTrue(place, place.contains("به افق ${tehran.name}"))
-        assertEquals(iranMillis(today.dhuhr), alarms.nextScheduledAlarm.triggerAtTime)
+        assertEquals(iranMillis(today.dhuhr), alarms.scheduledAlarms.single().triggerAtTime)
     }
 
     @Test fun withoutWidgetsNothingIsBooked() {
