@@ -35,7 +35,7 @@ function PrayerTimesPageView() {
           <span className="sky-hero__hijri">{hijriLabel(now)}</span>
         </div>
         <p className="sky-hero__date">{solarLabel(now)}</p>
-        <p className="sky-hero__kicker">{next.label}{next.tomorrow && ' فردا'}</p>
+        <p className="sky-hero__kicker">وقت بعدی{next.tomorrow && '، فردا'}</p>
         <div id="next-prayer" className="sky-hero__next">
           <span className="sky-hero__name">{next.shortLabel}</span>
           <span className="sky-hero__time" dir="ltr">{toPersianDigits(next.time)}</span>
