@@ -146,7 +146,7 @@ function CalendarPageView() {
   );
 
   return (
-    <SkyPage title={TITLE} hero={hero} variant="calendar">
+    <SkyPage title={TITLE} hero={hero}>
       <section className="calendar-sheet" aria-label={`${monthName(displayedMonth)} ${toPersianDigits(displayedYear)}`}>
         <div className="calendar-weekdays" aria-hidden="true">
           {weekdayLabels.map((label, index) => (
@@ -206,7 +206,7 @@ export function CalendarPage() {
   return (
     <ClientOnly
       fallback={
-        <SkyPage title={TITLE} variant="calendar" hero={<div className="sky-placeholder" aria-hidden="true" />}>
+        <SkyPage title={TITLE} hero={<div className="sky-placeholder" aria-hidden="true" />}>
           <div className="sky-placeholder--ground" aria-hidden="true" />
         </SkyPage>
       }

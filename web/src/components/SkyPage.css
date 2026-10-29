@@ -33,14 +33,22 @@
   pointer-events: none;
 }
 
-.sky-scene__sun {
+/* The sun or moon sits in the free space on the left, below the chips and clear of the text. */
+.sky-scene__sun,
+.sky-scene__moon {
   position: absolute;
-  top: 38px;
-  left: 18px;
+  top: 104px;
+  left: 20px;
   display: none;
 }
 
-.sky-scene__night {
+.sky-scene__moon {
+  top: 112px;
+  left: 30px;
+  display: block;
+}
+
+.sky-scene__stars {
   position: absolute;
   top: 0;
   left: 0;
@@ -52,20 +60,16 @@
   display: block;
 }
 
+/* At dusk the sun has sunk to the bottom edge of the sky. */
 :root[data-sky='dusk'] .sky-scene__sun {
   top: auto;
-  bottom: -64px;
+  bottom: -46px;
   opacity: 0.85;
 }
 
-/* On the calendar the month buttons sit where the sun would; it rises beside the month name instead. */
-.sky-page--calendar .sky-scene__sun {
-  top: 100px;
-}
-
-:root[data-sky='day'] .sky-scene__night,
-:root[data-sky='dawn'] .sky-scene__night,
-:root[data-sky='dusk'] .sky-scene__night {
+:root[data-sky='day'] :is(.sky-scene__moon, .sky-scene__stars),
+:root[data-sky='dawn'] :is(.sky-scene__moon, .sky-scene__stars),
+:root[data-sky='dusk'] :is(.sky-scene__moon, .sky-scene__stars) {
   display: none;
 }
 
