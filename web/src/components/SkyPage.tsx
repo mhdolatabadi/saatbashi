@@ -31,13 +31,29 @@ function SkyScene() {
   );
 }
 
-/** The live-sky layout: a sky hero on top and the page's ground below it. */
-export function SkyPage({ title, hero, children, }: { title: string; hero: ReactNode; children: ReactNode }) {
+/**
+ * The live-sky layout: a sky hero on top and the page's ground below it. [top] sits above the title, for a site
+ * header; [className] can widen the content column (see SkyPage.css).
+ */
+export function SkyPage({
+  title,
+  top,
+  hero,
+  children,
+  className,
+}: {
+  title?: string;
+  top?: ReactNode;
+  hero: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="sky-page">
+    <div className={'sky-page' + (className ? ` ${className}` : '')}>
       <section className="sky-hero">
         <SkyScene />
-        <h1 className="sky-hero__title">{title}</h1>
+        {top}
+        {title && <h1 className="sky-hero__title">{title}</h1>}
         {hero}
       </section>
       <div className="sky-ground">{children}</div>

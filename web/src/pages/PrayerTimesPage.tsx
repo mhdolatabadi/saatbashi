@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { APPROXIMATE_NOTE, formatDuration } from '../lib/prayerTimes';
 import { toPersianDigits } from '../lib/persianDate';
@@ -8,6 +8,7 @@ import { minutesAt, placeLabel, timesFor, usePlace } from '../lib/place';
 import { CityPicker } from '../components/PrayerTimes';
 import { LocationIcon } from '../components/icons';
 import { SkyPage } from '../components/SkyPage';
+import { DayTrack } from '../components/DayTrack';
 import './LandingPage.css';
 import './PrayerTimesPage.css';
 import { ClientOnly } from '../components/ClientOnly';
@@ -45,27 +46,7 @@ function PrayerTimesPageView() {
           {next.label}{next.tomorrow && ' فردا'}، {formatDuration(next.minutesLeft)} دیگر
         </p>
       </div>
-      <div
-        className={'day-track' + (track.marks.some((m) => m.lane === 1) ? ' has-upper' : '')}
-        style={{ '--progress': track.progress } as CSSProperties}
-      >
-        <div className="day-track__bar" role="progressbar" aria-label={track.night ? 'گذر شب' : 'گذر روز'}
-          aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(track.progress * 100)}>
-          <span className="day-track__fill" />
-        </div>
-        <ol className="day-track__marks">
-          {track.marks.map((mark) => (
-            <li
-              key={mark.key}
-              className={`day-track__mark is-${mark.state} lane-${mark.lane}`}
-              style={{ '--at': mark.position } as CSSProperties}
-            >
-              <span>{mark.label}</span>
-              <span dir="ltr">{toPersianDigits(mark.time)}</span>
-            </li>
-          ))}
-        </ol>
-      </div>
+      <DayTrack track={track} />
     </>
   );
 

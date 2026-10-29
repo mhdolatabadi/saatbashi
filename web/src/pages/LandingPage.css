@@ -60,31 +60,31 @@
   color: var(--holiday);
 }
 
-/* Today ---------------------------------------------------------------------------------------- */
+/* Today, on the sky ---------------------------------------------------------------------------- */
 
-.ti-today {
-  padding: 24px 28px;
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 36px;
-  flex-wrap: wrap;
+.home-hero {
+  padding-top: 18px;
+}
+
+.home-hero--placeholder {
+  min-height: 330px;
 }
 
 /* Each part is its own flex item: Persian digits form an RTL run even inside an LTR box, so a
-   single text run would put the seconds before the hours. */
-.ti-today__clock {
+   single text run would put the seconds before the hours. Packed to the right, clear of the sun. */
+.home-hero__clock {
   display: flex;
+  justify-content: flex-end;
   align-items: baseline;
   direction: ltr;
-  font-size: 60px;
+  font-size: clamp(56px, 15vw, 88px);
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
 
-.ti-today__colon {
+.home-hero__colon {
   padding: 0 2px;
   opacity: 0.55;
   animation: colon 1s steps(1) infinite;
@@ -94,11 +94,11 @@
   50% { opacity: 0.2; }
 }
 
-.ti-today__seconds {
+.home-hero__seconds {
   display: inline-flex;
-  font-size: 28px;
+  font-size: 0.42em;
   font-weight: 500;
-  color: var(--muted);
+  color: var(--hero-muted);
 }
 
 .ti-roll {
@@ -117,59 +117,68 @@
   from { transform: translateY(-70%); opacity: 0; filter: blur(3px); }
 }
 
-.ti-today__dates {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(3, auto);
-  justify-content: space-between;
-  gap: 12px 24px;
+.home-hero__dates {
+  margin: 14px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 32px;
 }
 
-.ti-today__date {
+.home-hero__date {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
-.ti-today__label {
+.home-hero__date dt {
   font-size: 12.5px;
-  color: var(--muted);
+  color: var(--hero-muted);
 }
 
-.ti-today__value {
+.home-hero__date dd {
+  margin: 0;
   font-size: 16px;
   font-weight: 600;
 }
 
-.ti-today__date--solar .ti-today__value {
+.home-hero__date--solar dd {
   font-size: 20px;
   font-weight: 700;
 }
 
-.ti-today__date [dir='ltr'] {
+.home-hero__date [dir='ltr'] {
   text-align: right;
 }
 
-@media (max-width: 720px) {
-  .ti-today {
+.home-hero__next {
+  margin: 22px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.home-hero__next .sky-pill {
+  font-size: 13px;
+}
+
+.home-hero .day-track {
+  max-width: 760px;
+}
+
+@media (max-width: 560px) {
+  .home-hero__dates {
     flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-    padding: 20px 18px;
+    gap: 0;
   }
-  .ti-today__clock {
-    justify-content: center;
-    font-size: 50px;
-  }
-  .ti-today__dates {
-    grid-template-columns: 1fr;
-  }
-  .ti-today__date {
+  .home-hero__date {
     flex-direction: row;
     justify-content: space-between;
     align-items: baseline;
-    padding-top: 10px;
-    border-top: 1px solid var(--glass-line);
+    padding: 8px 0;
+    border-top: 1px solid var(--hero-chip-line);
   }
 }
 
@@ -767,10 +776,6 @@
   opacity: 0.6;
 }
 
-.ti-placeholder--today {
-  min-height: 140px;
-}
-
 .ti-placeholder--calendar {
   min-height: 680px;
 }
@@ -839,7 +844,7 @@
   .ti-roll__digit,
   .ti-calendar__month,
   .ti-selected,
-  .ti-today__colon {
+  .home-hero__colon {
     animation: none;
   }
   .ti-calendar__grid.is-from-next,

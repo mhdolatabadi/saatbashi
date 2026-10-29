@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   daysInMonth,
@@ -14,11 +14,14 @@ import {
 import { hijriMonthName, toHijri } from '../lib/hijriDate';
 import { minutesAt, placeLabel, timesFor, usePlace } from '../lib/place';
 import { CityPicker, PrayerTimesTable } from '../components/PrayerTimes';
-import { APPROXIMATE_NOTE } from '../lib/prayerTimes';
+import { APPROXIMATE_NOTE, formatDuration } from '../lib/prayerTimes';
 import { isHoliday, occasionsOn, type Occasion } from '../data/occasions';
 import { ChevronIcon, LocationIcon } from '../components/icons';
 import { ClientOnly } from '../components/ClientOnly';
-import { PublicLayout } from '../components/SiteChrome';
+import { SiteFooter, SiteHeader } from '../components/SiteChrome';
+import { SkyPage } from '../components/SkyPage';
+import { DayTrack } from '../components/DayTrack';
+import { dayTrack } from '../lib/dayTrack';
 import { DateConverter } from '../components/DateConverter';
 import { gregorianLabel, hijriLabel, solarLabel } from '../lib/dateLabels';
 import { BUILD_YEAR, yearPath } from '../lib/calendarPages';
@@ -55,33 +58,45 @@ function Rolling({ value, className }: { value: number; className?: string }) {
   );
 }
 
-function TodayPanel({ now }: { now: Date }) {
+type PlaceState = ReturnType<typeof usePlace>;
+
+/** On the sky: the clock, today in all three calendars, and the day's prayers on a track. */
+function HomeHero({ now, place }: { now: Date; place: PlaceState['place'] }) {
+  const track = dayTrack(timesFor(place, now), minutesAt(place, now));
+  const { next } = track;
   return (
-    <section className="ti-today glass enter" aria-label="امروز">
-      <div className="ti-today__clock" role="timer" aria-label={now.toLocaleTimeString('fa-IR')}>
+    <div className="home-hero">
+      <div className="home-hero__clock" role="timer" aria-label={now.toLocaleTimeString('fa-IR')}>
         <Rolling value={now.getHours()} />
-        <span className="ti-today__colon">:</span>
+        <span className="home-hero__colon">:</span>
         <Rolling value={now.getMinutes()} />
-        <span className="ti-today__seconds">
-          <span className="ti-today__colon">:</span>
+        <span className="home-hero__seconds">
+          <span className="home-hero__colon">:</span>
           <Rolling value={now.getSeconds()} />
         </span>
       </div>
-      <div className="ti-today__dates">
-        <div className="ti-today__date ti-today__date--solar">
-          <span className="ti-today__label">هجری شمسی</span>
-          <span className="ti-today__value">{solarLabel(now)}</span>
+      <dl className="home-hero__dates">
+        <div className="home-hero__date home-hero__date--solar">
+          <dt>هجری شمسی</dt>
+          <dd>{solarLabel(now)}</dd>
         </div>
-        <div className="ti-today__date">
-          <span className="ti-today__label">هجری قمری</span>
-          <span className="ti-today__value">{hijriLabel(now)}</span>
+        <div className="home-hero__date">
+          <dt>هجری قمری</dt>
+          <dd>{hijriLabel(now)}</dd>
         </div>
-        <div className="ti-today__date">
-          <span className="ti-today__label">میلادی</span>
-          <span className="ti-today__value" dir="ltr">{gregorianLabel(now)}</span>
+        <div className="home-hero__date">
+          <dt>میلادی</dt>
+          <dd dir="ltr">{gregorianLabel(now)}</dd>
         </div>
-      </div>
-    </section>
+      </dl>
+      <p className="home-hero__next" aria-live="polite">
+        <span className="sky-pill">
+          {next.label}{next.tomorrow && ' فردا'} <span dir="ltr">{toPersianDigits(next.time)}</span>
+        </span>
+        <span>{formatDuration(next.minutesLeft)} دیگر، {placeLabel(place)}</span>
+      </p>
+      <DayTrack track={track} />
+    </div>
   );
 }
 
@@ -281,8 +296,9 @@ function CalendarSection({ now }: { now: Date }) {
 
 // --- Prayer times -------------------------------------------------------------------------------
 
-function PrayerTimesCard({ now }: { now: Date }) {
-  const { place, selectCity, useMyLocation, locationError, cities } = usePlace();
+/** The place is shared with the hero, so both follow the city picked here. */
+function PrayerTimesCard({ now, placeState }: { now: Date; placeState: PlaceState }) {
+  const { place, selectCity, useMyLocation, locationError, cities } = placeState;
   // A handful of trig calls; cheap enough to redo on every tick and it rolls over at midnight.
   const times = timesFor(place, now);
 
@@ -308,31 +324,62 @@ function PrayerTimesCard({ now }: { now: Date }) {
 
 // --- Page ---------------------------------------------------------------------------------------
 
+const ABOUT = (
+  <section className="ti-about glass" aria-labelledby="ti-about-title">
+    <h2 id="ti-about-title" className="ti-card__title">درباره‌ی ساعت‌باشی</h2>
+    <p>
+      ساعت‌باشی تقویم کامل شمسی را همراه با تاریخ قمری و میلادی هر روز نشان می‌دهد؛ جمعه‌ها و تعطیلات رسمی
+      به رنگ قرمزند و مناسبت‌های هر ماه زیر تقویم آمده است. اوقات شرعی امروز (اذان صبح، طلوع آفتاب، اذان
+      ظهر، غروب آفتاب، اذان مغرب و نیمه‌شب شرعی) به افق تهران یا موقعیت شما محاسبه می‌شود و با مبدل تاریخ
+      می‌توانید تاریخ شمسی و میلادی را به هم تبدیل کنید.
+    </p>
+    <ul className="ti-about__links">
+      <li><Link to={yearPath(BUILD_YEAR)}>تقویم {toPersianDigits(BUILD_YEAR)}</Link></li>
+      <li><Link to="/app/prayer-times">اوقات شرعی امروز</Link></li>
+      <li><Link to="/prayer-times">اوقات شرعی شهرهای ایران</Link></li>
+      <li><Link to="/app/calendar">تقویم ماه جاری</Link></li>
+    </ul>
+  </section>
+);
+
+/** The site on the live sky: header and today on the sky, the calendar and tools on the ground below. */
+function HomeFrame({ hero, children }: { hero: ReactNode; children: ReactNode }) {
+  return (
+    <SkyPage className="ti sky-page--site" top={<SiteHeader onSky />} hero={hero}>
+      <main className="ti-main">
+        <h1 className="sr-only">تقویم شمسی، قمری و میلادی، اوقات شرعی و مناسبت‌های امروز</h1>
+        {children}
+        {ABOUT}
+      </main>
+      <SiteFooter onGround />
+    </SkyPage>
+  );
+}
+
 /** Everything that depends on the current moment; rendered only in the browser. */
 function LiveHome() {
   const now = useNow();
+  const placeState = usePlace();
   return (
-    <>
-      <TodayPanel now={now} />
+    <HomeFrame hero={<HomeHero now={now} place={placeState.place} />}>
       <div className="ti-layout">
         <div className="ti-layout__primary">
           <CalendarSection now={now} />
         </div>
         <aside className="ti-layout__aside">
-          <PrayerTimesCard now={now} />
+          <PrayerTimesCard now={now} placeState={placeState} />
           <DateConverter style={{ animationDelay: '200ms' }} />
         </aside>
       </div>
-    </>
+    </HomeFrame>
   );
 }
 
 /** Same footprint as LiveHome, so nothing jumps when the live content replaces it. */
 function HomePlaceholder() {
   return (
-    <div aria-hidden="true">
-      <div className="ti-today glass ti-placeholder ti-placeholder--today" />
-      <div className="ti-layout">
+    <HomeFrame hero={<div className="home-hero home-hero--placeholder" aria-hidden="true" />}>
+      <div className="ti-layout" aria-hidden="true">
         <div className="ti-layout__primary">
           <div className="ti-card glass ti-placeholder ti-placeholder--calendar" />
         </div>
@@ -340,36 +387,14 @@ function HomePlaceholder() {
           <div className="ti-card glass ti-placeholder ti-placeholder--prayer" />
         </div>
       </div>
-    </div>
+    </HomeFrame>
   );
 }
 
 export function LandingPage() {
   return (
-    <PublicLayout>
-      <main className="ti-main">
-        <h1 className="sr-only">تقویم شمسی، قمری و میلادی، اوقات شرعی و مناسبت‌های امروز</h1>
-        <ClientOnly fallback={<HomePlaceholder />}>
-          <LiveHome />
-        </ClientOnly>
-
-        <section className="ti-about glass" aria-labelledby="ti-about-title">
-          <h2 id="ti-about-title" className="ti-card__title">درباره‌ی ساعت‌باشی</h2>
-          <p>
-            ساعت‌باشی تقویم کامل شمسی را همراه با تاریخ قمری و میلادی هر روز نشان می‌دهد؛ جمعه‌ها و تعطیلات رسمی
-            به رنگ قرمزند و مناسبت‌های هر ماه زیر تقویم آمده است. اوقات شرعی امروز (اذان صبح، طلوع آفتاب، اذان
-            ظهر، غروب آفتاب، اذان مغرب و نیمه‌شب شرعی) به افق تهران یا موقعیت شما محاسبه می‌شود و با مبدل تاریخ
-            می‌توانید تاریخ شمسی و میلادی را به هم تبدیل کنید.
-          </p>
-          <ul className="ti-about__links">
-            <li><Link to={yearPath(BUILD_YEAR)}>تقویم {toPersianDigits(BUILD_YEAR)}</Link></li>
-            <li><Link to="/app/prayer-times">اوقات شرعی امروز</Link></li>
-            <li><Link to="/prayer-times">اوقات شرعی شهرهای ایران</Link></li>
-            <li><Link to="/app/calendar">تقویم ماه جاری</Link></li>
-          </ul>
-        </section>
-      </main>
-
-    </PublicLayout>
+    <ClientOnly fallback={<HomePlaceholder />}>
+      <LiveHome />
+    </ClientOnly>
   );
 }
