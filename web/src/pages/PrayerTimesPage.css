@@ -101,7 +101,8 @@
   position: relative;
   height: 6px;
   border-radius: 3px;
-  background: var(--glass-line);
+  /* The remaining part stays visible on the darkest night sky. */
+  background: color-mix(in srgb, var(--text) 22%, transparent);
   overflow: hidden;
 }
 
