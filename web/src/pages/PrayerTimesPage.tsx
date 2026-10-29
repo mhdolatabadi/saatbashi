@@ -7,10 +7,12 @@ import { dayTiles, dayTrack } from '../lib/dayTrack';
 import { minutesAt, placeLabel, timesFor, usePlace } from '../lib/place';
 import { CityPicker } from '../components/PrayerTimes';
 import { LocationIcon } from '../components/icons';
+import { SkyPage } from '../components/SkyPage';
 import './LandingPage.css';
 import './PrayerTimesPage.css';
 import { ClientOnly } from '../components/ClientOnly';
 
+const TITLE = 'اوقات شرعی امروز';
 const LUNAR_NOTE = 'تاریخ قمری محاسبه‌ای است و ممکن است با تقویم رسمی (رؤیت هلال) یک روز اختلاف داشته باشد.';
 
 function PrayerTimesPageView() {
@@ -27,75 +29,79 @@ function PrayerTimesPageView() {
   const track = dayTrack(times, nowMinutes);
   const { next } = track;
 
-  return (
+  const hero = (
     <>
-      <section className="sky-hero" aria-labelledby="next-prayer">
-        <div className="sky-hero__bar">
-          <CityPicker cities={cities} value={place.kind === 'city' ? place.city.slug : ''} onChange={selectCity} />
-          <span className="sky-hero__hijri">{hijriLabel(now)}</span>
+      <div className="sky-hero__bar">
+        <CityPicker cities={cities} value={place.kind === 'city' ? place.city.slug : ''} onChange={selectCity} />
+        <span className="sky-pill">{hijriLabel(now)}</span>
+      </div>
+      <div className="next-prayer">
+        <p className="next-prayer__date">{solarLabel(now)}</p>
+        <p className="next-prayer__line">
+          <span className="next-prayer__name">{next.shortLabel}</span>
+          <span className="next-prayer__time" dir="ltr">{toPersianDigits(next.time)}</span>
+        </p>
+        <p className="next-prayer__left" aria-live="polite">
+          {next.label}{next.tomorrow && ' فردا'}، {formatDuration(next.minutesLeft)} دیگر
+        </p>
+      </div>
+      <div className="day-track" style={{ '--progress': track.progress } as CSSProperties}>
+        <div className="day-track__bar" role="progressbar" aria-label={track.night ? 'گذر شب' : 'گذر روز'}
+          aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(track.progress * 100)}>
+          <span className="day-track__fill" />
         </div>
-        <p className="sky-hero__date">{solarLabel(now)}</p>
-        <p className="sky-hero__kicker">وقت بعدی{next.tomorrow && '، فردا'}</p>
-        <div id="next-prayer" className="sky-hero__next">
-          <span className="sky-hero__name">{next.shortLabel}</span>
-          <span className="sky-hero__time" dir="ltr">{toPersianDigits(next.time)}</span>
-        </div>
-        <p className="sky-hero__left" aria-live="polite">{formatDuration(next.minutesLeft)} دیگر</p>
-
-        <div className="day-track" style={{ '--progress': track.progress } as CSSProperties}>
-          <div className="day-track__bar" role="progressbar" aria-label={track.night ? 'گذر شب' : 'گذر روز'}
-            aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(track.progress * 100)}>
-            <span className="day-track__fill" />
-          </div>
-          <ol className="day-track__marks">
-            {track.marks.map((mark) => (
-              <li key={mark.key} className={`day-track__mark is-${mark.state}`} style={{ '--at': mark.position } as CSSProperties}>
-                <span>{mark.label}</span>
-                <span dir="ltr">{toPersianDigits(mark.time)}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      <section className="prayer-sheet glass" aria-label="اوقات امروز">
-        <div className="prayer-sheet__head">
-          <span className="prayer-sheet__place">
-            {placeLabel(place)}
-            {locationError && ' — دسترسی به موقعیت مکانی داده نشد'}
-          </span>
-          <button type="button" className="prayer-sheet__location" onClick={useMyLocation}>
-            <LocationIcon />
-            موقعیت من
-          </button>
-        </div>
-        <ul className="prayer-tiles">
-          {dayTiles(times, nowMinutes).map(({ key, label, time, state }) => (
-            <li key={key} className={`prayer-tile is-${state}`}>
-              <span className="prayer-tile__label">
-                {label}
-                {state === 'next' && <span className="prayer-next-label">بعدی</span>}
-              </span>
-              <span className="prayer-tile__time" dir="ltr">{toPersianDigits(time)}</span>
+        <ol className="day-track__marks" style={{ '--count': track.marks.length } as CSSProperties}>
+          {track.marks.map((mark) => (
+            <li key={mark.key} className={`day-track__mark is-${mark.state}`}>
+              <span>{mark.label}</span>
+              <span dir="ltr">{toPersianDigits(mark.time)}</span>
             </li>
           ))}
-        </ul>
-      </section>
+        </ol>
+      </div>
+    </>
+  );
 
+  return (
+    <SkyPage title={TITLE} hero={hero}>
+      <ul className="prayer-tiles" aria-label="اوقات امروز">
+        {dayTiles(times, nowMinutes).map(({ key, label, time, state }) => (
+          <li key={key} className={`prayer-tile sky-card is-${state}`}>
+            <span className="prayer-tile__label">
+              {label}
+              {state === 'next' && <span className="prayer-next-label">بعدی</span>}
+            </span>
+            <span className="prayer-tile__time" dir="ltr">{toPersianDigits(time)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="prayer-place sky-card">
+        <span className="prayer-place__label">
+          {placeLabel(place)}
+          {locationError && ' — دسترسی به موقعیت مکانی داده نشد'}
+        </span>
+        <button type="button" className="prayer-place__location" onClick={useMyLocation}>
+          <LocationIcon />
+          موقعیت من
+        </button>
+      </div>
       <p className="prayer-times-page__note">
         {APPROXIMATE_NOTE} {LUNAR_NOTE} اوقات شهرهای دیگر را در <Link to="/prayer-times">اوقات شرعی شهرهای ایران</Link> ببینید.
       </p>
-    </>
+    </SkyPage>
   );
 }
 
 export function PrayerTimesPage() {
   return (
-    <div className="prayer-times-page">
-      <h1 className="prayer-times-page__title">اوقات شرعی امروز</h1>
-      <ClientOnly fallback={<div className="glass page-placeholder page-placeholder--prayer" aria-hidden="true" />}>
-        <PrayerTimesPageView />
-      </ClientOnly>
-    </div>
+    <ClientOnly
+      fallback={
+        <SkyPage title={TITLE} hero={<div className="sky-placeholder" aria-hidden="true" />}>
+          <div className="sky-placeholder--ground" aria-hidden="true" />
+        </SkyPage>
+      }
+    >
+      <PrayerTimesPageView />
+    </ClientOnly>
   );
 }

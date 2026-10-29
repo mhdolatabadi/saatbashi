@@ -17,7 +17,7 @@ export function AppShell() {
       <main key={pathname} className="app-shell__content page-enter">
         <Outlet />
       </main>
-      <nav className="app-shell__nav glass" aria-label="بخش‌ها" style={{ '--active': active, '--tab-count': tabs.length } as CSSProperties}>
+      <nav className="app-shell__nav" aria-label="بخش‌ها" style={{ '--active': active, '--tab-count': tabs.length } as CSSProperties}>
         {active >= 0 && <span className="app-shell__indicator" aria-hidden="true" />}
         {tabs.map(({ to, label, Icon }) => (
           <NavLink

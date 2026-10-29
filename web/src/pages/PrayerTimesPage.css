@@ -1,108 +1,60 @@
-.prayer-times-page {
-  padding: 24px 16px;
-}
-
-.prayer-times-page__title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-  margin: 0 4px 10px;
-}
-
-/* Hero: sits straight on the live sky, which already follows the prayer period. */
-
-.sky-hero {
-  padding: 0 4px 8px;
-}
-
 .sky-hero__bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
 }
 
-.sky-hero__bar .ti-city-picker span {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+.next-prayer {
+  margin-top: 26px;
 }
 
-.sky-hero__bar .ti-city-picker select {
-  border-radius: 22px;
-  padding: 0 16px;
-  font-weight: 600;
-  background: var(--glass);
-  border-color: var(--glass-edge);
-}
-
-.sky-hero__hijri {
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 14px;
-  background: var(--text);
-  color: var(--sky-top);
-  white-space: nowrap;
-}
-
-.sky-hero__date {
-  margin: 22px 0 0;
+.next-prayer__date {
+  margin: 0;
   font-size: 14px;
   font-weight: 500;
-  color: var(--muted);
+  color: var(--hero-muted);
 }
 
-.sky-hero__kicker {
-  margin: 10px 0 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.sky-hero__next {
+.next-prayer__line {
+  margin: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 14px;
+  gap: 0 12px;
 }
 
-.sky-hero__name {
-  font-size: clamp(52px, 17vw, 72px);
+.next-prayer__name {
+  font-size: clamp(56px, 17vw, 68px);
   font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.5px;
+  line-height: 1.2;
 }
 
-.sky-hero__time {
-  font-size: clamp(28px, 9vw, 38px);
+.next-prayer__time {
+  font-size: clamp(30px, 9vw, 36px);
   font-weight: 700;
-  color: var(--muted);
+  color: var(--hero-muted);
   font-variant-numeric: tabular-nums;
 }
 
-.sky-hero__left {
-  margin: 2px 0 0;
+.next-prayer__left {
+  margin: 0;
   font-size: 16px;
   font-weight: 600;
 }
 
-/* Day track: right-to-left from the first mark to the last. */
+/* Day track: the bar fills right-to-left in proportion to the time gone; the labels sit evenly below it. */
 
 .day-track {
-  margin-top: 22px;
-  padding-inline: 18px;
+  margin-top: 20px;
 }
 
 .day-track__bar {
   position: relative;
   height: 6px;
   border-radius: 3px;
-  /* The remaining part stays visible on the darkest night sky. */
-  background: color-mix(in srgb, var(--text) 22%, transparent);
+  background: color-mix(in srgb, var(--hero-ink) 18%, transparent);
   overflow: hidden;
 }
 
@@ -112,93 +64,36 @@
   inset-inline-start: 0;
   width: calc(var(--progress) * 100%);
   border-radius: 3px;
-  background: var(--text);
+  background: var(--hero-accent);
   transition: width 600ms var(--ease-out);
 }
 
 .day-track__marks {
-  position: relative;
   list-style: none;
-  margin: 0;
+  margin: 10px 0 0;
   padding: 0;
-  height: 40px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .day-track__mark {
-  position: absolute;
-  top: 8px;
-  inset-inline-start: calc(var(--at) * 100%);
-  transform: translateX(50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   font-size: 11.5px;
-  line-height: 1.4;
-  color: var(--muted);
-  white-space: nowrap;
+  line-height: 1.5;
+  color: var(--hero-muted);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-}
-
-.day-track__mark::before {
-  content: '';
-  position: absolute;
-  top: -11px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--sky-low);
-  border: 2px solid var(--muted);
-}
-
-.day-track__mark.is-past::before {
-  background: var(--text);
-  border-color: var(--text);
+  white-space: nowrap;
 }
 
 .day-track__mark.is-next {
-  color: var(--text);
+  color: var(--hero-ink);
   font-weight: 700;
 }
 
-.day-track__mark.is-next::before {
-  border-color: var(--accent);
-  background: var(--accent);
-  box-shadow: 0 0 0 4px var(--accent-soft);
-}
-
-/* Sheet of times */
-
-.prayer-sheet {
-  margin-top: 18px;
-  padding: 14px 12px 12px;
-  border-radius: 24px;
-}
-
-.prayer-sheet__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px 8px;
-  margin: 0 4px 8px;
-}
-
-.prayer-sheet__place {
-  font-size: 13.5px;
-  color: var(--muted);
-  min-width: 0;
-}
-
-.prayer-sheet__location {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 0 4px;
-  color: var(--accent);
-  font-size: 14px;
-  font-weight: 600;
-}
+/* Times on the ground */
 
 .prayer-tiles {
   list-style: none;
@@ -215,9 +110,6 @@
   gap: 2px;
   padding: 12px 14px;
   border-radius: 18px;
-  background: var(--glass-weak);
-  border: 1px solid var(--glass-line);
-  transition: background-color 300ms ease-out, opacity 300ms ease-out;
 }
 
 .prayer-tile__label {
@@ -225,20 +117,20 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 8px;
-  font-size: 13px;
-  color: var(--muted);
+  font-size: 12.5px;
   font-weight: 500;
+  color: var(--muted);
 }
 
 .prayer-tile__time {
-  font-size: 23px;
+  font-size: 22px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
 .prayer-tile.is-past {
-  opacity: 0.62;
+  opacity: 0.6;
 }
 
 .prayer-tile.is-next {
@@ -246,9 +138,35 @@
   border-color: var(--accent);
 }
 
-.prayer-tile.is-next .prayer-tile__label,
-.prayer-tile.is-next .prayer-tile__time {
+.prayer-tile.is-next .prayer-tile__label {
   color: var(--accent);
+}
+
+.prayer-place {
+  margin-top: 12px;
+  padding: 4px 6px 4px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 8px;
+}
+
+.prayer-place__label {
+  font-size: 13.5px;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.prayer-place__location {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 8px;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .prayer-times-page__note {

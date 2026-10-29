@@ -16,9 +16,11 @@ import { hijriMonthName, toHijri } from '../lib/hijriDate';
 import { isHoliday, occasionsOn } from '../data/occasions';
 import { timesFor, usePlace } from '../lib/place';
 import { ChevronIcon } from '../components/icons';
+import { SkyPage } from '../components/SkyPage';
 import './CalendarPage.css';
 import { ClientOnly } from '../components/ClientOnly';
 
+const TITLE = 'تقویم';
 const weekdayLabels = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
 const LUNAR_NOTE = 'تاریخ‌های قمری محاسبه‌ای‌اند و ممکن است با تقویم رسمی (رؤیت هلال) یک روز اختلاف داشته باشند.';
 
@@ -44,14 +46,14 @@ function TodayTimes() {
     { label: 'اذان مغرب', time: times.maghrib },
   ];
   return (
-    <section className="calendar-today glass" aria-labelledby="calendar-today-title">
+    <section className="calendar-today" aria-labelledby="calendar-today-title">
       <div className="calendar-today__head">
         <h2 id="calendar-today-title">اوقات امروز {place.kind === 'city' && `به افق ${place.city.name}`}</h2>
         <Link to="/app/prayer-times">همه‌ی اوقات</Link>
       </div>
       <ul className="calendar-today__tiles">
         {tiles.map(({ label, time }) => (
-          <li key={label}>
+          <li key={label} className="sky-card">
             <span>{label}</span>
             <b dir="ltr">{toPersianDigits(time)}</b>
           </li>
@@ -123,27 +125,29 @@ function CalendarPageView() {
 
   const monthKey = `${displayedYear}-${displayedMonth}`;
 
-  return (
+  const hero = (
     <>
-      <section className="calendar-hero">
-        <div className="calendar-hero__bar">
-          <button type="button" className="calendar-nav-button" onClick={goToNextMonth} aria-label="ماه بعد">
-            <ChevronIcon className="calendar-nav-button__icon--flip" />
-          </button>
-          <span className="calendar-hero__hijri">{month.hijriSpan}</span>
-          <button type="button" className="calendar-nav-button" onClick={goToPreviousMonth} aria-label="ماه قبل">
-            <ChevronIcon />
-          </button>
-        </div>
-        <p key={monthKey} className="calendar-hero__month" aria-live="polite">
-          <span className="calendar-hero__name">{monthName(displayedMonth)}</span>
-          <span className="calendar-hero__year">{toPersianDigits(displayedYear)}</span>
-        </p>
-        <p className="calendar-hero__sub">{month.gregorianSpan}</p>
-        <p className="calendar-hero__today">{todayLabel}</p>
-      </section>
+      <div className="calendar-hero__bar">
+        <button type="button" className="sky-chip calendar-nav-button" onClick={goToNextMonth} aria-label="ماه بعد">
+          <ChevronIcon className="calendar-nav-button__icon--flip" />
+        </button>
+        <span className="sky-pill calendar-hero__hijri">{month.hijriSpan}</span>
+        <button type="button" className="sky-chip calendar-nav-button" onClick={goToPreviousMonth} aria-label="ماه قبل">
+          <ChevronIcon />
+        </button>
+      </div>
+      <p key={monthKey} className="calendar-hero__month" aria-live="polite">
+        <span className="calendar-hero__name">{monthName(displayedMonth)}</span>
+        <span className="calendar-hero__year">{toPersianDigits(displayedYear)}</span>
+      </p>
+      <p className="calendar-hero__sub">{month.gregorianSpan}</p>
+      <p className="calendar-hero__today">{todayLabel}</p>
+    </>
+  );
 
-      <section className="calendar-sheet glass" aria-label={`${monthName(displayedMonth)} ${toPersianDigits(displayedYear)}`}>
+  return (
+    <SkyPage title={TITLE} hero={hero} variant="calendar">
+      <section className="calendar-sheet" aria-label={`${monthName(displayedMonth)} ${toPersianDigits(displayedYear)}`}>
         <div className="calendar-weekdays" aria-hidden="true">
           {weekdayLabels.map((label, index) => (
             <div key={label} className={'calendar-weekdays__cell' + (index === 6 ? ' is-holiday' : '')}>
@@ -179,7 +183,7 @@ function CalendarPageView() {
       <TodayTimes />
 
       {month.occasions.length > 0 && (
-        <section className="calendar-occasions glass" aria-labelledby="calendar-occasions-title">
+        <section className="calendar-occasions sky-card" aria-labelledby="calendar-occasions-title">
           <h2 id="calendar-occasions-title">مناسبت‌های {monthName(displayedMonth)}</h2>
           <ul>
             {month.occasions.map((o, i) => (
@@ -194,17 +198,20 @@ function CalendarPageView() {
       )}
 
       <p className="calendar-page__note">{LUNAR_NOTE}</p>
-    </>
+    </SkyPage>
   );
 }
 
 export function CalendarPage() {
   return (
-    <div className="calendar-page">
-      <h1 className="calendar-page__title">تقویم</h1>
-      <ClientOnly fallback={<div className="glass page-placeholder page-placeholder--calendar" aria-hidden="true" />}>
-        <CalendarPageView />
-      </ClientOnly>
-    </div>
+    <ClientOnly
+      fallback={
+        <SkyPage title={TITLE} variant="calendar" hero={<div className="sky-placeholder" aria-hidden="true" />}>
+          <div className="sky-placeholder--ground" aria-hidden="true" />
+        </SkyPage>
+      }
+    >
+      <CalendarPageView />
+    </ClientOnly>
   );
 }

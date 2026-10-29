@@ -1,20 +1,3 @@
-.calendar-page {
-  padding: 24px 16px;
-}
-
-.calendar-page__title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-  margin: 0 4px 10px;
-}
-
-/* Hero: the month in large type on the live sky. */
-
-.calendar-hero {
-  padding: 0 4px 6px;
-}
-
 .calendar-hero__bar {
   display: flex;
   align-items: center;
@@ -24,63 +7,19 @@
 
 .calendar-hero__hijri {
   min-width: 0;
+  white-space: normal;
   text-align: center;
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 14px;
-  background: var(--text);
-  color: var(--sky-top);
-}
-
-.calendar-hero__month {
-  margin: 18px 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 14px;
-  animation: rise-in 380ms var(--ease-out) both;
-}
-
-.calendar-hero__name {
-  font-size: clamp(48px, 15vw, 64px);
-  font-weight: 700;
-  line-height: 1.15;
-}
-
-.calendar-hero__year {
-  font-size: clamp(26px, 8vw, 34px);
-  font-weight: 700;
-  color: var(--muted);
-}
-
-.calendar-hero__sub {
-  margin: 0;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.calendar-hero__today {
-  margin: 6px 0 0;
-  font-size: 15px;
-  font-weight: 600;
 }
 
 .calendar-nav-button {
   flex: none;
   width: 44px;
   height: 44px;
-  border-radius: 50%;
-  background: var(--glass);
-  border: 1px solid var(--glass-edge);
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 160ms var(--ease-out), background-color 180ms ease-out;
-}
-
-.calendar-nav-button:hover {
-  background: var(--accent-soft);
+  transition: transform 160ms var(--ease-out);
 }
 
 .calendar-nav-button:active {
@@ -91,14 +30,41 @@
   transform: scaleX(-1);
 }
 
-/* Month grid */
-
-.calendar-sheet {
-  margin-top: 16px;
-  padding: 12px 8px 8px;
-  border-radius: 24px;
-  overflow: hidden;
+.calendar-hero__month {
+  margin: 22px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 12px;
+  animation: rise-in 380ms var(--ease-out) both;
 }
+
+.calendar-hero__name {
+  font-size: clamp(52px, 16vw, 64px);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.calendar-hero__year {
+  font-size: clamp(26px, 8vw, 32px);
+  font-weight: 700;
+  color: var(--hero-muted);
+}
+
+.calendar-hero__sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--hero-muted);
+}
+
+.calendar-hero__today {
+  margin: 6px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hero-muted);
+}
+
+/* Month grid, straight on the ground */
 
 .calendar-weekdays {
   display: grid;
@@ -111,7 +77,7 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--muted);
-  padding: 4px 0;
+  padding: 2px 0;
 }
 
 .calendar-weekdays__cell.is-holiday {
@@ -142,8 +108,7 @@
 }
 
 .calendar-day {
-  position: relative;
-  min-height: 50px;
+  min-height: 48px;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
@@ -170,7 +135,6 @@
 .calendar-day.is-today {
   background: var(--accent);
   color: var(--on-accent);
-  box-shadow: 0 6px 18px -6px var(--accent);
 }
 
 .calendar-day.is-today .calendar-day__solar {
@@ -185,9 +149,7 @@
 /* Today's times */
 
 .calendar-today {
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 22px;
+  margin-top: 16px;
 }
 
 .calendar-today__head {
@@ -196,7 +158,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0 8px;
-  margin: 0 4px 6px;
+  margin: 0 4px 4px;
 }
 
 .calendar-today__head h2 {
@@ -228,10 +190,8 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 8px 10px;
+  padding: 8px 12px;
   border-radius: 16px;
-  background: var(--glass-weak);
-  border: 1px solid var(--glass-line);
 }
 
 .calendar-today__tiles span {
@@ -250,7 +210,6 @@
 .calendar-occasions {
   margin-top: 12px;
   padding: 14px 16px;
-  border-radius: 22px;
 }
 
 .calendar-occasions h2 {
