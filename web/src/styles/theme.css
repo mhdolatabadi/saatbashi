@@ -53,6 +53,12 @@
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --radius: 16px;
+
+  /* The page ground under the sky hero (live-sky layout). */
+  --ground: #f3f5fa;
+  --surface: #ffffff;
+  --surface-line: #e1e5ef;
+  --surface-shadow: 0 12px 30px -12px rgb(27 35 102 / 0.35);
 }
 
 :root[data-sky='night'] { --sky-top: #b0b8e4; --sky-mid: #a9a0d8; --sky-low: #c5bce8; --orb-1: #5875e8; --orb-2: #4cb9d6; --orb-3: #9a6cd5; }
@@ -79,12 +85,44 @@
     --glass-edge: rgb(255 255 255 / 0.14);
     --glass-line: rgb(255 255 255 / 0.1);
     --glass-shadow: 0 14px 44px -14px rgb(0 0 0 / 0.6);
+
+    --ground: #0b1024;
+    --surface: #141a33;
+    --surface-line: #262e4f;
+    --surface-shadow: 0 12px 30px -10px rgb(0 0 0 / 0.7);
   }
 
   :root[data-sky='night'] { --sky-top: #030617; --sky-mid: #0b1234; --sky-low: #17224c; --orb-1: #4a3fc4; --orb-2: #1f7f8c; --orb-3: #7a3a86; }
   :root[data-sky='dawn']  { --sky-top: #281534; --sky-mid: #693950; --sky-low: #a65d65; --orb-1: #c2587a; --orb-2: #d08a4a; --orb-3: #4d4fb8; }
   :root[data-sky='day']   { --sky-top: #072c46; --sky-mid: #105c78; --sky-low: #298b9c; --orb-1: #2f8fd6; --orb-2: #2bb3a6; --orb-3: #5a5ad0; }
   :root[data-sky='dusk']  { --sky-top: #361128; --sky-mid: #853b48; --sky-low: #b56640; --orb-1: #d8664a; --orb-2: #b04c8c; --orb-3: #5a47b8; }
+}
+
+/* The sky hero follows the prayer period in both schemes, like the real sky; the ground below follows the scheme.
+   Unset (static HTML, before the first tick) reads as night. */
+:root {
+  --hero-top: #070b26; --hero-mid: #1a1d52; --hero-low: #3a2d6e;
+  --hero-ink: #ffffff; --hero-muted: #c9ccee;
+  --hero-chip: rgb(255 255 255 / 0.1); --hero-chip-line: rgb(255 255 255 / 0.22);
+  --hero-pill: #ffc766; --hero-pill-ink: #2a1c00; --hero-accent: #ffc766;
+}
+:root[data-sky='dawn'] {
+  --hero-top: #8fa7e6; --hero-mid: #f2b6b4; --hero-low: #ffe0b5;
+  --hero-ink: #1e1b3a; --hero-muted: #3e3a5e;
+  --hero-chip: rgb(255 255 255 / 0.45); --hero-chip-line: rgb(255 255 255 / 0.7);
+  --hero-pill: #1e1b3a; --hero-pill-ink: #ffffff; --hero-accent: #1e1b3a;
+}
+:root[data-sky='day'] {
+  --hero-top: #5aa3e8; --hero-mid: #9ccbf2; --hero-low: #f6d7a6;
+  --hero-ink: #0d1a3a; --hero-muted: #24365f;
+  --hero-chip: rgb(255 255 255 / 0.45); --hero-chip-line: rgb(255 255 255 / 0.7);
+  --hero-pill: #0d1a3a; --hero-pill-ink: #ffffff; --hero-accent: #0d1a3a;
+}
+:root[data-sky='dusk'] {
+  --hero-top: #241f5c; --hero-mid: #6b3b7a; --hero-low: #b4567a;
+  --hero-ink: #ffffff; --hero-muted: #f3dde6;
+  --hero-chip: rgb(255 255 255 / 0.12); --hero-chip-line: rgb(255 255 255 / 0.28);
+  --hero-pill: #ffc766; --hero-pill-ink: #2a1c00; --hero-accent: #ffc766;
 }
 
 * {

@@ -1,0 +1,138 @@
+/* The ground fills the app column down to the bottom, behind the tab bar, so no sky shows below the content. */
+.app-shell__content:has(.sky-page) {
+  background: var(--ground);
+}
+
+.sky-page {
+  color: var(--text);
+}
+
+.sky-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 20px 46px;
+  background: linear-gradient(180deg, var(--hero-top) 0%, var(--hero-mid) 58%, var(--hero-low) 100%);
+  color: var(--hero-ink);
+  transition: background-color 2.4s ease;
+}
+
+.sky-hero > :not(.sky-scene) {
+  position: relative;
+}
+
+.sky-hero__title {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--hero-muted);
+}
+
+.sky-scene {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* The sun or moon sits in the free space on the left, below the chips and clear of the text. */
+.sky-scene__sun,
+.sky-scene__moon {
+  position: absolute;
+  top: 104px;
+  left: 20px;
+  display: none;
+}
+
+.sky-scene__moon {
+  top: 112px;
+  left: 30px;
+  display: block;
+}
+
+.sky-scene__stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+:root[data-sky='day'] .sky-scene__sun,
+:root[data-sky='dawn'] .sky-scene__sun,
+:root[data-sky='dusk'] .sky-scene__sun {
+  display: block;
+}
+
+/* At dusk the sun has sunk to the bottom edge of the sky. */
+:root[data-sky='dusk'] .sky-scene__sun {
+  top: auto;
+  bottom: -46px;
+  opacity: 0.85;
+}
+
+:root[data-sky='day'] :is(.sky-scene__moon, .sky-scene__stars),
+:root[data-sky='dawn'] :is(.sky-scene__moon, .sky-scene__stars),
+:root[data-sky='dusk'] :is(.sky-scene__moon, .sky-scene__stars) {
+  display: none;
+}
+
+/* Chips on the sky: the city picker, month buttons and the lunar date. */
+
+.sky-chip,
+.sky-hero .ti-city-picker select {
+  min-height: 44px;
+  border-radius: 22px;
+  border: 1px solid var(--hero-chip-line);
+  background: var(--hero-chip);
+  color: var(--hero-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sky-hero .ti-city-picker select {
+  padding: 0 14px;
+}
+
+.sky-hero .ti-city-picker select option {
+  color: initial;
+}
+
+.sky-hero .ti-city-picker > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.sky-pill {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 14px;
+  background: var(--hero-pill);
+  color: var(--hero-pill-ink);
+  white-space: nowrap;
+}
+
+/* The ground rises over the bottom of the sky with rounded corners. */
+.sky-ground {
+  position: relative;
+  margin-top: -24px;
+  border-radius: 28px 28px 0 0;
+  background: var(--ground);
+  padding: 20px 16px 8px;
+}
+
+.sky-card {
+  border-radius: 20px;
+  border: 1px solid var(--surface-line);
+  background: var(--surface);
+}
+
+.sky-placeholder {
+  min-height: 220px;
+}
+
+.sky-placeholder--ground {
+  min-height: 420px;
+}
