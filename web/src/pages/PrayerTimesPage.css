@@ -44,10 +44,16 @@
   font-weight: 600;
 }
 
-/* Day track: the bar fills right-to-left in proportion to the time gone; the labels sit evenly below it. */
+/* Day track: marks sit at their true place in time, right to left; a crowded label moves above the bar. */
 
 .day-track {
+  position: relative;
   margin-top: 20px;
+  padding: 0 18px 38px;
+}
+
+.day-track.has-upper {
+  padding-top: 38px;
 }
 
 .day-track__bar {
@@ -69,14 +75,18 @@
 }
 
 .day-track__marks {
+  position: absolute;
+  inset: 0 18px;
   list-style: none;
-  margin: 10px 0 0;
+  margin: 0;
   padding: 0;
-  display: flex;
-  justify-content: space-between;
+  pointer-events: none;
 }
 
 .day-track__mark {
+  position: absolute;
+  inset-inline-start: calc(var(--at) * 100%);
+  transform: translateX(50%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -88,9 +98,65 @@
   white-space: nowrap;
 }
 
+/* The tick on the bar, from the label's centre. */
+.day-track__mark::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: var(--hero-mid);
+  border: 2px solid var(--hero-muted);
+  box-sizing: border-box;
+}
+
+.day-track__mark.lane-0 {
+  top: calc(var(--bar-top, 0px) + 14px);
+}
+
+.day-track__mark.lane-0::before {
+  top: -15px;
+}
+
+.day-track__mark.lane-1 {
+  bottom: calc(100% - var(--bar-top, 0px) + 8px);
+  flex-direction: column-reverse;
+}
+
+.day-track__mark.lane-1::before {
+  bottom: -15px;
+}
+
+.has-upper {
+  --bar-top: 38px;
+}
+
+.day-track__mark.is-past::before {
+  background: var(--hero-accent);
+  border-color: var(--hero-accent);
+}
+
 .day-track__mark.is-next {
   color: var(--hero-ink);
   font-weight: 700;
+}
+
+.day-track__mark.is-next::before {
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  background: var(--hero-accent);
+  border-color: var(--hero-ink);
+}
+
+.day-track__mark.lane-0.is-next::before {
+  top: -17px;
+}
+
+.day-track__mark.lane-1.is-next::before {
+  bottom: -17px;
 }
 
 /* Times on the ground */

@@ -1,6 +1,20 @@
-/* The ground fills the app column down to the bottom, behind the tab bar, so no sky shows below the content. */
+/* Sky and ground run edge to edge; only the content keeps to the app's column. The ground fills down to the
+   bottom, behind the tab bar, so no other colour shows at the sides or below. */
+:root:has(.sky-page) {
+  background: var(--ground);
+}
+
+.app-shell:has(.sky-page) {
+  max-width: none;
+}
+
 .app-shell__content:has(.sky-page) {
   background: var(--ground);
+}
+
+.sky-page {
+  --column: 520px;
+  --gutter: max(0px, calc((100% - var(--column)) / 2));
 }
 
 .sky-page {
@@ -10,7 +24,7 @@
 .sky-hero {
   position: relative;
   overflow: hidden;
-  padding: 18px 20px 46px;
+  padding: 18px calc(var(--gutter) + 20px) 46px;
   background: linear-gradient(180deg, var(--hero-top) 0%, var(--hero-mid) 58%, var(--hero-low) 100%);
   color: var(--hero-ink);
   transition: background-color 2.4s ease;
@@ -38,13 +52,13 @@
 .sky-scene__moon {
   position: absolute;
   top: 104px;
-  left: 20px;
+  left: calc(var(--gutter) + 20px);
   display: none;
 }
 
 .sky-scene__moon {
   top: 112px;
-  left: 30px;
+  left: calc(var(--gutter) + 30px);
   display: block;
 }
 
@@ -120,7 +134,7 @@
   margin-top: -24px;
   border-radius: 28px 28px 0 0;
   background: var(--ground);
-  padding: 20px 16px 8px;
+  padding: 20px calc(var(--gutter) + 16px) 8px;
 }
 
 .sky-card {

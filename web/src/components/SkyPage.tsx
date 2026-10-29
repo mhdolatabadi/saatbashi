@@ -5,15 +5,20 @@ import './SkyPage.css';
 function SkyScene() {
   return (
     <div className="sky-scene" aria-hidden="true">
-      <svg className="sky-scene__stars" width="390" height="200" viewBox="0 0 390 200" preserveAspectRatio="xMinYMin slice">
-        <circle cx="40" cy="40" r="1.4" fill="#fff" opacity=".8" />
-        <circle cx="120" cy="24" r="1" fill="#fff" opacity=".6" />
-        <circle cx="210" cy="60" r="1.2" fill="#fff" opacity=".7" />
-        <circle cx="300" cy="30" r="1" fill="#fff" opacity=".5" />
-        <circle cx="80" cy="110" r="1" fill="#fff" opacity=".5" />
-        <circle cx="250" cy="130" r="1.3" fill="#fff" opacity=".6" />
-        <circle cx="350" cy="90" r="1" fill="#fff" opacity=".7" />
-        <circle cx="170" cy="150" r="1" fill="#fff" opacity=".4" />
+      <svg className="sky-scene__stars" width="100%" height="220">
+        <defs>
+          <pattern id="sky-stars" width="390" height="220" patternUnits="userSpaceOnUse">
+            <circle cx="40" cy="40" r="1.4" fill="#fff" opacity=".8" />
+            <circle cx="120" cy="24" r="1" fill="#fff" opacity=".6" />
+            <circle cx="210" cy="60" r="1.2" fill="#fff" opacity=".7" />
+            <circle cx="300" cy="30" r="1" fill="#fff" opacity=".5" />
+            <circle cx="80" cy="110" r="1" fill="#fff" opacity=".5" />
+            <circle cx="250" cy="130" r="1.3" fill="#fff" opacity=".6" />
+            <circle cx="350" cy="90" r="1" fill="#fff" opacity=".7" />
+            <circle cx="170" cy="150" r="1" fill="#fff" opacity=".4" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#sky-stars)" />
       </svg>
       <svg className="sky-scene__sun" width="76" height="76" viewBox="0 0 76 76">
         <circle cx="38" cy="38" r="36" fill="#fff3d6" opacity=".35" />

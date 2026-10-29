@@ -45,14 +45,21 @@ function PrayerTimesPageView() {
           {next.label}{next.tomorrow && ' فردا'}، {formatDuration(next.minutesLeft)} دیگر
         </p>
       </div>
-      <div className="day-track" style={{ '--progress': track.progress } as CSSProperties}>
+      <div
+        className={'day-track' + (track.marks.some((m) => m.lane === 1) ? ' has-upper' : '')}
+        style={{ '--progress': track.progress } as CSSProperties}
+      >
         <div className="day-track__bar" role="progressbar" aria-label={track.night ? 'گذر شب' : 'گذر روز'}
           aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(track.progress * 100)}>
           <span className="day-track__fill" />
         </div>
-        <ol className="day-track__marks" style={{ '--count': track.marks.length } as CSSProperties}>
+        <ol className="day-track__marks">
           {track.marks.map((mark) => (
-            <li key={mark.key} className={`day-track__mark is-${mark.state}`}>
+            <li
+              key={mark.key}
+              className={`day-track__mark is-${mark.state} lane-${mark.lane}`}
+              style={{ '--at': mark.position } as CSSProperties}
+            >
               <span>{mark.label}</span>
               <span dir="ltr">{toPersianDigits(mark.time)}</span>
             </li>

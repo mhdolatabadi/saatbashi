@@ -25,7 +25,12 @@ export interface TrackMark {
   /** 0..1 along the track. */
   position: number;
   state: MarkState;
+  /** 0: label below the bar; 1: above it, when the mark sits too close to its neighbour below. */
+  lane: 0 | 1;
 }
+
+/** Labels closer than this share no lane: about one label width on a phone. */
+export const MIN_LABEL_GAP = 0.16;
 
 export interface DayTrack {
   next: { key: TrackKey; label: string; shortLabel: string; time: string; minutesLeft: number; tomorrow: boolean };
@@ -76,18 +81,23 @@ export function dayTrack(times: PrayerTimes, nowMinutes: number): DayTrack {
   const now = night ? nightClock(nowMinutes) : nowMinutes;
   const nextIndex = points.findIndex((p) => p.at > now);
 
-  return {
-    next,
-    night,
-    progress: Math.min(Math.max((now - start) / span, 0), 1),
-    marks: points.map((p, i) => ({
+  // Marks sit at their true place in time; a label that would run into the one before it moves above the bar.
+  const lastInLane = [-Infinity, -Infinity];
+  const marks = points.map((p, i): TrackMark => {
+    const position = (p.at - start) / span;
+    const lane: 0 | 1 = position - lastInLane[0] < MIN_LABEL_GAP && position - lastInLane[1] >= MIN_LABEL_GAP ? 1 : 0;
+    lastInLane[lane] = position;
+    return {
       key: p.key,
       label: labels[p.key].short,
       time: p.time,
-      position: (p.at - start) / span,
+      position,
       state: i === nextIndex ? 'next' : i < nextIndex || nextIndex === -1 ? 'past' : 'future',
-    })),
-  };
+      lane,
+    };
+  });
+
+  return { next, night, progress: Math.min(Math.max((now - start) / span, 0), 1), marks };
 }
 
 /** Each of today's rows plus Shar'i midnight, marked past, next or upcoming. Midnight is never dimmed. */
