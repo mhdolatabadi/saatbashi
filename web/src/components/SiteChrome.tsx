@@ -50,6 +50,7 @@ export function SiteFooter() {
           <h2 id="footer-more">ساعت‌باشی</h2>
           <ul>
             <li><a href={ANDROID_RELEASE} target="_blank" rel="noreferrer">دریافت نسخه اندروید</a></li>
+            <li><Link to="/privacy">حریم خصوصی</Link></li>
           </ul>
         </section>
       </div>
