@@ -23,6 +23,12 @@
     <color name="today_highlight">#15803D</color>
     <color name="friday_text">#B0472F</color>
 
+    <!-- Home-screen widget; dark versions in values-night. -->
+    <color name="widget_background">#F2FFFFFF</color>
+    <color name="widget_text">#1B1F1E</color>
+    <color name="widget_muted">#5F6866</color>
+    <color name="widget_accent">#15803D</color>
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

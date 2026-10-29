@@ -76,7 +76,14 @@ jobs:
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/atid-release.jks"
+          # Tolerate how the secret is usually pasted: wrapped lines, Windows line endings, or
+          # certutil's BEGIN/END lines. Anything else that is not base64 is a wrong value.
+          keystore="$RUNNER_TEMP/atid-release.jks"
+          if ! printf '%s' "$ANDROID_KEYSTORE_BASE64" | grep -v -- '-----' | tr -d ' \t\r\n' | base64 --decode > "$keystore" \
+            || [ ! -s "$keystore" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not valid base64 of the keystore. Re-create it with 'base64 -w0 atid-release.jks' (see docs/android-release.md)." >&2
+            exit 1
+          fi
           echo "ATID_KEYSTORE_FILE=$RUNNER_TEMP/atid-release.jks" >> "$GITHUB_ENV"
 
       - name: Set up JDK 17

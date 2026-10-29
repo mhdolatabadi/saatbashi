@@ -35,9 +35,18 @@ describe('search metadata', () => {
     expect(prerenderRoutes).toContain('/privacy');
     expect(metaFor('/privacy').noindex).not.toBe(true);
   });
-  it('describes the site, its publisher and the Android app on the home page', () => {
+  it('describes the site and its publisher on the home page', () => {
+    // No SoftwareApplication: Google rejects it without ratings, which would show as an error in Search Console.
     const types = structuredDataFor('/', 'https://example.test')['@graph'].map(node => node['@type']);
-    expect(types).toEqual(['WebSite', 'Organization', 'SoftwareApplication']);
+    expect(types).toEqual(['WebSite', 'Organization']);
+  });
+  it('names breadcrumb steps briefly instead of repeating page titles', () => {
+    const crumbs = structuredDataFor('/prayer-times/tehran/1405/aban', 'https://example.test')['@graph'][1] as
+      { itemListElement: { name: string }[] };
+    expect(crumbs.itemListElement.map(c => c.name)).toEqual(['ساعت‌باشی', 'اوقات شرعی', 'تهران', 'آبان ۱۴۰۵']);
+    const month = structuredDataFor('/calendar/1405/mehr', 'https://example.test')['@graph'][1] as
+      { itemListElement: { name: string }[] };
+    expect(month.itemListElement.map(c => c.name)).toEqual(['ساعت‌باشی', 'تقویم', '۱۴۰۵', 'مهر']);
   });
   it('emits the visible FAQ of guide pages as FAQPage', () => {
     for (const [path, entries] of Object.entries(faqs)) {
