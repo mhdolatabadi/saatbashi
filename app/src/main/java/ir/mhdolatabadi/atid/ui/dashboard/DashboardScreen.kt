@@ -54,7 +54,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.mhdolatabadi.atid.R
-import ir.mhdolatabadi.atid.ui.BottomBarClearance
+import ir.mhdolatabadi.atid.ui.components.HeroPill
+import ir.mhdolatabadi.atid.ui.components.LocalHero
+import ir.mhdolatabadi.atid.ui.components.SkyPage
+import ir.mhdolatabadi.atid.ui.components.heroChip
+import ir.mhdolatabadi.atid.util.LocationUtils
+import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDirection
 import ir.mhdolatabadi.atid.ui.components.glass
 import ir.mhdolatabadi.atid.ui.components.pressScale
 import ir.mhdolatabadi.atid.ui.theme.Atid
@@ -63,72 +74,73 @@ import ir.mhdolatabadi.atid.util.PersianDateUtils
 private val weekdayLabels = listOf("ش", "ی", "د", "س", "چ", "پ", "ج")
 private const val FRIDAY_INDEX = 6
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
+fun DashboardScreen(viewModel: DashboardViewModel = viewModel(), onOpenPrayerTimes: () -> Unit = {}) {
     val state by viewModel.uiState.observeAsState()
     val current = state ?: return
     val colors = Atid.colors
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = BottomBarClearance)
-    ) {
-        Text(
-            text = current.todayLabel,
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.muted,
-            modifier = Modifier.padding(horizontal = 4.dp)
-        )
-
-        Column(
-            modifier = Modifier
-                .padding(top = 12.dp)
-                .fillMaxWidth()
-                .glass()
-                .padding(12.dp)
-        ) {
+    SkyPage(
+        title = "تقویم",
+        hero = {
+            val hero = LocalHero.current
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Next sits first (on the right in RTL) and points left, the direction time runs in Persian.
                 MonthNavButton(description = "ماه بعد", mirrored = true, onClick = { viewModel.goToNextMonth() })
-                AnimatedContent(
-                    targetState = current,
-                    contentKey = { it.monthIndex },
-                    transitionSpec = { fadeIn(tween(260)) togetherWith fadeOut(tween(120)) },
-                    label = "monthLabel",
-                    modifier = Modifier.weight(1f)
-                ) { month ->
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = month.monthLabel,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = colors.text
-                        )
-                        Text(
-                            text = "${month.hijriRange} • ${month.gregorianRange}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.muted,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    HeroPill(current.hijriRange)
                 }
                 MonthNavButton(description = "ماه قبل", mirrored = false, onClick = { viewModel.goToPreviousMonth() })
             }
-
-            Row(modifier = Modifier.fillMaxWidth()) {
+            AnimatedContent(
+                targetState = current,
+                contentKey = { it.monthIndex },
+                transitionSpec = {
+                    (fadeIn(tween(380)) + slideInVertically(tween(380)) { it / 6 }) togetherWith fadeOut(tween(120))
+                },
+                label = "monthLabel"
+            ) { month ->
+                Column(modifier = Modifier.fillMaxWidth().padding(top = 22.dp)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            text = month.monthName,
+                            fontSize = 58.sp,
+                            lineHeight = 70.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = hero.ink,
+                            modifier = Modifier.alignByBaseline()
+                        )
+                        Text(
+                            text = month.yearLabel,
+                            fontSize = 30.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = hero.muted,
+                            modifier = Modifier.alignByBaseline()
+                        )
+                    }
+                    Text(text = month.gregorianRange, fontSize = 13.sp, color = hero.muted)
+                }
+            }
+            Text(
+                text = current.todayLabel,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = hero.muted,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+        },
+        ground = {
+            Row(modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)) {
                 weekdayLabels.forEachIndexed { index, label ->
                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                         Text(
                             text = label,
-                            style = MaterialTheme.typography.labelMedium,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = if (index == FRIDAY_INDEX) colors.holiday else colors.muted
                         )
@@ -150,15 +162,80 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
             ) { month ->
                 MonthGrid(month = month, selected = current.selectedDate, onSelect = viewModel::select)
             }
-        }
 
-        TextButton(onClick = viewModel::goToToday, modifier = Modifier.align(Alignment.End)) {
-            Text("برو به امروز")
+            if (!current.showingToday) {
+                TextButton(
+                    onClick = viewModel::goToToday,
+                    modifier = Modifier.align(Alignment.End).heightIn(min = 48.dp)
+                ) {
+                    Text("برو به امروز", fontWeight = FontWeight.SemiBold, color = colors.accent)
+                }
+            }
+
+            TodayTimes(onOpenPrayerTimes)
+            SelectedDayCard(current.selected)
+            PersonalEventsCard(current.selectedDate, current.selected.solarLabel)
+            MonthOccasionsCard(current)
+            DateConverterCard(modifier = Modifier.padding(top = 16.dp))
         }
-        SelectedDayCard(current.selected)
-        PersonalEventsCard(current.selectedDate, current.selected.solarLabel)
-        MonthOccasionsCard(current)
-        DateConverterCard(modifier = Modifier.padding(top = 16.dp))
+    )
+}
+
+/** Three of today's adhans, with a way to the full list (web: TodayTimes on the calendar page). */
+@Composable
+private fun TodayTimes(onOpenPrayerTimes: () -> Unit) {
+    val colors = Atid.colors
+    val context = LocalContext.current
+    val (times, place) = remember {
+        val coordinates = LocationUtils.resolve(context)
+        LocationUtils.timesForToday(coordinates) to coordinates.city?.name
+    }
+    Column(modifier = Modifier.padding(top = 16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "اوقات امروز" + (place?.let { " به افق $it" } ?: ""),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = colors.text,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "همه‌ی اوقات",
+                fontSize = 13.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = colors.accent,
+                modifier = Modifier
+                    .heightIn(min = 48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(role = Role.Button, onClick = onOpenPrayerTimes)
+                    .wrapContentHeight()
+                    .padding(horizontal = 6.dp)
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("اذان صبح" to times.fajr, "اذان ظهر" to times.dhuhr, "اذان مغرب" to times.maghrib).forEach { (label, time) ->
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .glass(RoundedCornerShape(16.dp))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(text = label, fontSize = 11.5.sp, color = colors.muted)
+                    Text(
+                        text = PersianDateUtils.toPersianDigits(time),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.text,
+                        style = MaterialTheme.typography.titleMedium.copy(textDirection = TextDirection.Ltr)
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -184,22 +261,20 @@ private fun MonthGrid(month: CalendarMonthUiState, selected: Date, onSelect: (Da
 
 @Composable
 private fun MonthNavButton(description: String, mirrored: Boolean, onClick: () -> Unit) {
-    val colors = Atid.colors
+    val hero = LocalHero.current
     val interaction = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .size(48.dp)
-            .pressScale(interaction)
-            .clip(CircleShape)
-            .background(colors.glassWeak)
-            .border(1.dp, colors.glassEdge, CircleShape)
+            .pressScale(interaction, pressed = 0.9f)
+            .heroChip(CircleShape)
             .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             painter = painterResource(R.drawable.ic_chevron),
             contentDescription = description,
-            tint = colors.text,
+            tint = hero.ink,
             modifier = Modifier.graphicsLayer { scaleX = if (mirrored) -1f else 1f }
         )
     }
@@ -209,24 +284,24 @@ private fun MonthNavButton(description: String, mirrored: Boolean, onClick: () -
 private fun DayCell(cell: DayCellState, isSelected: Boolean, onClick: () -> Unit) {
     val largeText = LocalDensity.current.fontScale > 1.2f
     val colors = Atid.colors
-    val shape = RoundedCornerShape(10.dp)
+    val shape = RoundedCornerShape(16.dp)
     val interaction = remember { MutableInteractionSource() }
-    val background = when {
-        cell.isToday -> colors.accent
-        cell.isHoliday -> colors.holidaySoft
-        else -> colors.glassWeak
-    }
+    val background = if (cell.isToday) colors.accent else Color.Transparent
     val main = when {
         cell.isToday -> colors.onAccent
         cell.isHoliday -> colors.holiday
         else -> colors.text
     }
-    val sub = if (cell.isToday) colors.onAccent else colors.muted
+    val sub = when {
+        cell.isToday -> colors.onAccent.copy(alpha = 0.85f)
+        cell.isHoliday -> colors.holiday
+        else -> colors.muted
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 60.dp)
-            .padding(2.dp)
+            .heightIn(min = 56.dp)
+            .padding(1.5.dp)
             .pressScale(interaction, pressed = 0.94f)
             .then(if (cell.isToday) Modifier.shadow(8.dp, shape, ambientColor = colors.accent, spotColor = colors.accent) else Modifier)
             .clip(shape)
@@ -236,23 +311,23 @@ private fun DayCell(cell: DayCellState, isSelected: Boolean, onClick: () -> Unit
             .semantics { selected = isSelected }
             .padding(horizontal = 3.dp, vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically)
+        verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically)
     ) {
         Text(
             text = PersianDateUtils.toPersianDigits(cell.solarDay),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            fontWeight = if (cell.isToday) FontWeight.Bold else FontWeight.Medium,
             color = main
         )
         if (largeText) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = PersianDateUtils.toArabicDigits(cell.hijriDay), fontSize = 12.sp, color = sub)
-                Text(text = cell.gregorianDay.toString(), fontSize = 12.sp, color = sub)
+                Text(text = PersianDateUtils.toArabicDigits(cell.hijriDay), fontSize = 10.5.sp, color = sub)
+                Text(text = cell.gregorianDay.toString(), fontSize = 10.5.sp, color = sub)
             }
         } else {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(text = PersianDateUtils.toArabicDigits(cell.hijriDay), fontSize = 12.sp, color = sub)
-                Text(text = cell.gregorianDay.toString(), fontSize = 12.sp, color = sub)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                Text(text = PersianDateUtils.toArabicDigits(cell.hijriDay), fontSize = 10.5.sp, color = sub)
+                Text(text = cell.gregorianDay.toString(), fontSize = 10.5.sp, color = sub)
             }
         }
     }

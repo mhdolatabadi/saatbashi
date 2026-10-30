@@ -19,7 +19,7 @@
     <string name="label_prev_month">ماه قبل</string>
 
     <string name="label_prayer_times">اوقات شرعی امروز</string>
-    <string name="label_use_my_location">استفاده از موقعیت مکانی من</string>
+    <string name="label_use_my_location">موقعیت من</string>
     <string name="label_fajr">اذان صبح</string>
     <string name="label_sunrise">طلوع آفتاب</string>
     <string name="label_dhuhr">اذان ظهر</string>

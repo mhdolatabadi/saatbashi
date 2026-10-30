@@ -33,6 +33,11 @@ data class MonthOccasion(val dayLabel: String, val occasion: Occasion)
 
 data class CalendarMonthUiState(
     val monthLabel: String,
+    /** The month's name and year apart, for the sky hero ("آبان" and "۱۴۰۵"). */
+    val monthName: String,
+    val yearLabel: String,
+    /** True when the displayed month holds today and today is the selected day. */
+    val showingToday: Boolean,
     /** Lunar and Gregorian months the solar month spans, e.g. "ربیع‌الثانی – جمادی‌الاول ۱۴۴۸". */
     val hijriRange: String,
     val gregorianRange: String,
@@ -150,9 +155,12 @@ class DashboardViewModel(private val now: () -> Date = { Date() }) : ViewModel()
 
         _uiState.value = CalendarMonthUiState(
             monthLabel = "${PersianDateUtils.monthName(displayedMonth)} ${PersianDateUtils.toPersianDigits(displayedYear)}",
+            monthName = PersianDateUtils.monthName(displayedMonth),
+            yearLabel = PersianDateUtils.toPersianDigits(displayedYear),
+            showingToday = sameDay(selectedDate, todayDate),
             hijriRange = hijriRange,
             gregorianRange = gregorianRange,
-            todayLabel = "امروز: ${DateLabels.solar(todayDate)}",
+            todayLabel = "امروز ${DateLabels.solar(todayDate)}",
             days = cells,
             selectedDate = selectedDate,
             selected = DayDetails(

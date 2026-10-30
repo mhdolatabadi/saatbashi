@@ -47,7 +47,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.mhdolatabadi.atid.R
 import ir.mhdolatabadi.atid.data.QadaPrayer
-import ir.mhdolatabadi.atid.ui.BottomBarClearance
+import ir.mhdolatabadi.atid.ui.components.bottomBarClearance
+import androidx.compose.foundation.layout.statusBarsPadding
 import ir.mhdolatabadi.atid.ui.components.glass
 import ir.mhdolatabadi.atid.ui.components.pressScale
 import ir.mhdolatabadi.atid.ui.theme.Atid
@@ -69,8 +70,8 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
     val totalOutstanding by viewModel.totalOutstanding.observeAsState(0)
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = BottomBarClearance),
+        modifier = Modifier.fillMaxSize().statusBarsPadding(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = bottomBarClearance()),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
