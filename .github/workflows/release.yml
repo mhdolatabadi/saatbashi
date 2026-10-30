@@ -1,4 +1,4 @@
-name: Build and release APK
+name: Release
 
 on:
   workflow_run:
@@ -56,7 +56,10 @@ jobs:
           echo "code=$code" >> "$GITHUB_OUTPUT"
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Check signing secrets
+      # Signing is optional: without a usable keystore the tag and release are still made, with the
+      # web build only, so a bad secret never stops versioning.
+      - name: Restore keystore
+        id: signing
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -68,25 +71,43 @@ jobs:
             [ -n "${!name}" ] || missing+=("$name")
           done
           if [ ${#missing[@]} -gt 0 ]; then
-            echo "::error::Missing signing secrets: ${missing[*]}. See docs/android-release.md." >&2
-            exit 1
+            echo "::warning::Missing signing secrets: ${missing[*]}. Releasing without the APK/AAB; see docs/android-release.md."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
-
-      - name: Restore keystore
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        run: |
           # Tolerate how the secret is usually pasted: wrapped lines, Windows line endings, or
           # certutil's BEGIN/END lines. Anything else that is not base64 is a wrong value.
           keystore="$RUNNER_TEMP/atid-release.jks"
           if ! printf '%s' "$ANDROID_KEYSTORE_BASE64" | grep -v -- '-----' | tr -d ' \t\r\n' | base64 --decode > "$keystore" \
             || [ ! -s "$keystore" ]; then
-            echo "::error::ANDROID_KEYSTORE_BASE64 is not valid base64 of the keystore. Re-create it with 'base64 -w0 atid-release.jks' (see docs/android-release.md)." >&2
-            exit 1
+            echo "::warning::ANDROID_KEYSTORE_BASE64 is not valid base64 of the keystore, so this release has no APK/AAB. Re-create it with 'base64 -w0 atid-release.jks' (see docs/android-release.md)."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
-          echo "ATID_KEYSTORE_FILE=$RUNNER_TEMP/atid-release.jks" >> "$GITHUB_ENV"
+          echo "ATID_KEYSTORE_FILE=$keystore" >> "$GITHUB_ENV"
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build and package the web app
+        env:
+          SITE_URL: ${{ vars.ATID_SITE_URL }}
+          RELEASE_TAG: ${{ steps.release_tag.outputs.name }}
+        run: |
+          set -euo pipefail
+          cd web
+          npm ci
+          npm run build
+          mkdir -p ../release
+          (cd dist && zip -qr "../../release/Saatbashi-web-${RELEASE_TAG}.zip" .)
 
       - name: Set up JDK 17
+        if: steps.signing.outputs.ready == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -94,9 +115,11 @@ jobs:
           cache: gradle
 
       - name: Grant execute permission for gradlew
+        if: steps.signing.outputs.ready == 'true'
         run: chmod +x gradlew
 
       - name: Build release APK and bundle
+        if: steps.signing.outputs.ready == 'true'
         env:
           ATID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ATID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -107,6 +130,7 @@ jobs:
           -PreleaseVersionCode=${{ steps.release_tag.outputs.code }}
 
       - name: Verify signature and name the APK
+        if: steps.signing.outputs.ready == 'true'
         env:
           RELEASE_TAG: ${{ steps.release_tag.outputs.name }}
           RELEASE_VERSION: ${{ steps.release_tag.outputs.version }}
@@ -120,7 +144,6 @@ jobs:
           metadata="$("$aapt" dump badging "$apk")"
           grep -Fq "versionCode='$RELEASE_CODE'" <<< "$metadata"
           grep -Fq "versionName='$RELEASE_VERSION'" <<< "$metadata"
-          mkdir -p release
           cp "$apk" "release/Saatbashi-${RELEASE_TAG}.apk"
           # Stores that take bundles (Google Play, Cafe Bazaar) get the same signed build as an AAB.
           aab=app/build/outputs/bundle/release/app-release.aab
@@ -138,7 +161,8 @@ jobs:
           tag_name: ${{ steps.release_tag.outputs.name }}
           target_commitish: ${{ steps.release_tag.outputs.sha }}
           make_latest: legacy
-          files: |
-            release/Saatbashi-${{ steps.release_tag.outputs.name }}.apk
-            release/Saatbashi-${{ steps.release_tag.outputs.name }}.aab
+          files: release/*
+          body: >-
+            ${{ steps.signing.outputs.ready != 'true' &&
+            'This release has no Android APK/AAB because the signing secrets are missing or invalid (see docs/android-release.md).' || '' }}
           generate_release_notes: true
