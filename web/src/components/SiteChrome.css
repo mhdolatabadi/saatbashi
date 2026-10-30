@@ -138,3 +138,60 @@
   border-top: 1px solid var(--glass-line);
   line-height: 1.9;
 }
+
+/* On the live sky ------------------------------------------------------------------------------ */
+
+.ti-header--sky {
+  position: static;
+  width: auto;
+  margin: 0 0 4px;
+  border-radius: 0;
+}
+
+.ti-header--sky .ti-header__inner {
+  min-height: 52px;
+  padding: 0;
+}
+
+.ti-header--sky .ti-brand {
+  padding-inline-start: 0;
+  color: var(--hero-ink);
+}
+
+.ti-header--sky .ti-nav {
+  margin-inline-start: auto;
+}
+
+.ti-header--sky .ti-nav a {
+  color: var(--hero-muted);
+}
+
+.ti-header--sky .ti-nav a:hover,
+.ti-header--sky .ti-nav a[aria-current='page'] {
+  background: var(--hero-chip);
+  color: var(--hero-ink);
+}
+
+@media (max-width: 900px) {
+  .ti-header--sky .ti-header__inner {
+    padding: 0;
+  }
+  /* One row of links under the brand; a narrow screen scrolls it sideways instead of wrapping. */
+  .ti-header--sky .ti-nav {
+    flex-wrap: nowrap;
+    width: calc(100% + 8px);
+    margin-inline-start: -8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .ti-header--sky .ti-nav a {
+    padding: 0 8px;
+    font-size: 14px;
+  }
+}
+
+.sky-ground .ti-footer {
+  width: auto;
+  margin: 0 0 24px;
+  border-radius: 20px;
+}

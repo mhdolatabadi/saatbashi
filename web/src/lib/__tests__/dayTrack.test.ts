@@ -32,6 +32,13 @@ describe('day track', () => {
     expect(track.marks[4].position).toBe(1);
     expect(track.progress).toBeCloseTo((15 * 60 - 270) / (1170 - 270));
   });
+  it('places marks at their true time and lifts a crowded label above the bar', () => {
+    const track = dayTrack(times, 15 * 60);
+    // Dawn 04:30 to Isha 19:30 is 900 minutes; dhuhr is 450 minutes in.
+    expect(track.marks.map((m) => m.position)).toEqual([0, 0.5, 660 / 900, 830 / 900, 1]);
+    // Maghrib (18:20) and Isha (19:30) are 70 minutes apart, so Isha's label goes above.
+    expect(track.marks.map((m) => m.lane)).toEqual([0, 0, 0, 0, 1]);
+  });
   it('runs from Isha through midnight to the next dawn at night', () => {
     // Shar'i midnight is halfway from sunset (18:00) to the next dawn (04:30): 23:15.
     const evening = dayTrack(times, 21 * 60);

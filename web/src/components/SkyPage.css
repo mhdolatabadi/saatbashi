@@ -1,6 +1,20 @@
-/* The ground fills the app column down to the bottom, behind the tab bar, so no sky shows below the content. */
+/* Sky and ground run edge to edge; only the content keeps to the app's column. The ground fills down to the
+   bottom, behind the tab bar, so no other colour shows at the sides or below. */
+:root:has(.sky-page) {
+  background: var(--ground);
+}
+
+.app-shell:has(.sky-page) {
+  max-width: none;
+}
+
 .app-shell__content:has(.sky-page) {
   background: var(--ground);
+}
+
+.sky-page {
+  --column: 520px;
+  --gutter: max(0px, calc((100% - var(--column)) / 2));
 }
 
 .sky-page {
@@ -10,7 +24,7 @@
 .sky-hero {
   position: relative;
   overflow: hidden;
-  padding: 18px 20px 46px;
+  padding: 18px calc(var(--gutter) + 20px) 46px;
   background: linear-gradient(180deg, var(--hero-top) 0%, var(--hero-mid) 58%, var(--hero-low) 100%);
   color: var(--hero-ink);
   transition: background-color 2.4s ease;
@@ -37,14 +51,14 @@
 .sky-scene__sun,
 .sky-scene__moon {
   position: absolute;
-  top: 104px;
-  left: 20px;
+  top: var(--orb-top, 104px);
+  left: calc(var(--gutter) + 20px);
   display: none;
 }
 
 .sky-scene__moon {
-  top: 112px;
-  left: 30px;
+  top: calc(var(--orb-top, 104px) + 8px);
+  left: calc(var(--gutter) + 30px);
   display: block;
 }
 
@@ -120,7 +134,7 @@
   margin-top: -24px;
   border-radius: 28px 28px 0 0;
   background: var(--ground);
-  padding: 20px 16px 8px;
+  padding: 20px calc(var(--gutter) + 16px) 8px;
 }
 
 .sky-card {
@@ -135,4 +149,43 @@
 
 .sky-placeholder--ground {
   min-height: 420px;
+}
+
+/* The public site on the sky: a wide column, the header on the sky, and the site's glass cards made solid on
+   the ground by pointing the glass tokens at the ground's surfaces. */
+.sky-page--site {
+  --column: 1200px;
+  --orb-top: 92px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sky-page--site .sky-ground {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  --glass: var(--surface);
+  --glass-strong: var(--surface);
+  --glass-weak: var(--ground);
+  --glass-edge: var(--surface-line);
+  --glass-line: var(--surface-line);
+  --glass-shadow: none;
+}
+
+.sky-page--site .sky-ground .glass {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-radius: 20px;
+}
+
+.sky-page--site .ti-main {
+  width: auto;
+  margin: 0;
+  padding: 4px 0 24px;
+}
+
+@media (max-width: 900px) {
+  .sky-page--site {
+    --orb-top: 116px;
+  }
 }

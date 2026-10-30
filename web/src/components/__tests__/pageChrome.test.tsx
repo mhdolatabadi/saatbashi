@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
 import { AppShell } from '../AppShell';
-import { PublicLayout } from '../SiteChrome';
+import { PublicLayout, SiteFooter, SiteHeader } from '../SiteChrome';
 
 describe('unobstructed page chrome', () => {
   it('keeps navigation without adding a repeated guide panel', () => {
@@ -38,5 +38,12 @@ describe('unobstructed page chrome', () => {
     expect(html).toContain('/app/prayer-times');
     expect(html).toContain('href="/privacy"');
   });
-
+  it('drops the glass pane when the header sits on the sky and the footer on the ground', () => {
+    const header = renderToStaticMarkup(<MemoryRouter><SiteHeader onSky /></MemoryRouter>);
+    const footer = renderToStaticMarkup(<MemoryRouter><SiteFooter onGround /></MemoryRouter>);
+    expect(header).toContain('ti-header--sky');
+    expect(header).not.toContain('glass');
+    expect(footer).toContain('sky-card');
+    expect(footer).not.toContain('glass');
+  });
 });

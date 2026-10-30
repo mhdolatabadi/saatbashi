@@ -9,9 +9,10 @@ const navLinks = [
   { to: '/date-converter', label: 'تبدیل تاریخ' },
 ];
 
-export function SiteHeader() {
+/** On the sky hero ([onSky]) the header drops its glass pane and takes the sky's colours. */
+export function SiteHeader({ onSky = false }: { onSky?: boolean }) {
   return (
-    <header className="ti-header glass">
+    <header className={'ti-header' + (onSky ? ' ti-header--sky' : ' glass')}>
       <div className="ti-header__inner">
         <Link to="/" className="ti-brand">
           <img src="/favicon.svg" width="32" height="32" alt="" />
@@ -32,9 +33,9 @@ export function SiteHeader() {
   );
 }
 
-export function SiteFooter() {
+export function SiteFooter({ onGround = false }: { onGround?: boolean }) {
   return (
-    <footer className="ti-footer glass">
+    <footer className={'ti-footer' + (onGround ? ' sky-card' : ' glass')}>
       <div className="ti-footer__groups">
         <section aria-labelledby="footer-tools">
           <h2 id="footer-tools">تقویم و ابزارها</h2>
