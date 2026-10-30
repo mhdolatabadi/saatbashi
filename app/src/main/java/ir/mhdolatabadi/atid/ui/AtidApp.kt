@@ -21,7 +21,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -47,8 +52,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ir.mhdolatabadi.atid.R
-import ir.mhdolatabadi.atid.ui.components.SkyBackground
-import ir.mhdolatabadi.atid.ui.components.glass
+import ir.mhdolatabadi.atid.ui.components.rememberHeroPalette
 import ir.mhdolatabadi.atid.ui.components.pressScale
 import ir.mhdolatabadi.atid.ui.dashboard.DashboardScreen
 import ir.mhdolatabadi.atid.ui.home.HomeScreen
@@ -66,41 +70,43 @@ private val bottomBarDestinations = listOf(
     AtidDestination.PrayerTimes
 )
 
-/** Space the floating tab bar takes, so screens can keep their last item clear of it. */
-val BottomBarClearance = 104.dp
-
 @Composable
 fun AtidApp() {
     val navController = rememberNavController()
     val colors = Atid.colors
-    // The sky runs behind the system bars, so their icons must contrast with it.
+    val hero = rememberHeroPalette()
+    // The sky runs behind the status bar and the ground behind the navigation bar; their icons follow each.
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
             WindowCompat.getInsetsController(window, view).apply {
-                isAppearanceLightStatusBars = !colors.isDark
+                isAppearanceLightStatusBars = hero.isBright
                 isAppearanceLightNavigationBars = !colors.isDark
             }
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        SkyBackground()
-
+    Box(modifier = Modifier.fillMaxSize().background(colors.ground)) {
         NavHost(
             navController = navController,
             startDestination = AtidDestination.Dashboard.route,
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding(),
+            modifier = Modifier.fillMaxSize(),
             enterTransition = { fadeIn(tween(320)) + slideInVertically(tween(420)) { it / 24 } },
             exitTransition = { fadeOut(tween(160)) },
             popEnterTransition = { fadeIn(tween(320)) },
             popExitTransition = { fadeOut(tween(160)) }
         ) {
             composable(AtidDestination.Home.route) { HomeScreen() }
-            composable(AtidDestination.Dashboard.route) { DashboardScreen() }
+            composable(AtidDestination.Dashboard.route) {
+                DashboardScreen(onOpenPrayerTimes = {
+                    navController.navigate(AtidDestination.PrayerTimes.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                })
+            }
             composable(AtidDestination.PrayerTimes.route) { PrayerTimesScreen() }
         }
 
@@ -122,11 +128,12 @@ fun AtidApp() {
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 12.dp)
+                .padding(bottom = 14.dp)
         )
     }
 }
 
+/** A solid pill (web: .app-shell__nav): the active tab is filled with the accent and the fill glides between tabs. */
 @Composable
 private fun FloatingTabBar(
     selectedIndex: Int,
@@ -134,13 +141,16 @@ private fun FloatingTabBar(
     modifier: Modifier = Modifier
 ) {
     val colors = Atid.colors
-    val barShape = RoundedCornerShape(24.dp)
+    val barShape = RoundedCornerShape(30.dp)
     BoxWithConstraints(
         modifier = modifier
+            .padding(horizontal = 16.dp)
+            .widthIn(max = 340.dp)
             .fillMaxWidth()
-            .height(68.dp)
-            .glass(barShape, strong = true)
-            .padding(6.dp)
+            .shadow(16.dp, barShape, ambientColor = Color(0x591B2366), spotColor = Color(0x591B2366))
+            .background(colors.surface, barShape)
+            .border(1.dp, colors.surfaceLine, barShape)
+            .padding(5.dp)
     ) {
         val tabWidth = maxWidth / bottomBarDestinations.size
         // offset() follows layout direction, so in RTL the pill moves leftwards from the first tab.
@@ -149,15 +159,15 @@ private fun FloatingTabBar(
             modifier = Modifier
                 .offset(x = indicatorOffset)
                 .width(tabWidth)
-                .fillMaxHeight()
-                .background(colors.accentSoft, RoundedCornerShape(18.dp))
+                .height(48.dp)
+                .background(colors.accent, RoundedCornerShape(24.dp))
         )
-        Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        Row(modifier = Modifier.fillMaxWidth().height(48.dp)) {
             bottomBarDestinations.forEachIndexed { index, destination ->
                 val selected = index == selectedIndex
                 val interaction = remember { MutableInteractionSource() }
-                val lift by animateDpAsState(if (selected) (-2).dp else 0.dp, tween(320), label = "tabLift")
-                Column(
+                val tint by animateColorAsState(if (selected) colors.onAccent else colors.muted, tween(220), label = "tabTint")
+                Row(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
@@ -168,20 +178,19 @@ private fun FloatingTabBar(
                             role = Role.Tab,
                             onClick = { onSelect(destination) }
                         ),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val tint = if (selected) colors.accent else colors.muted
                     Icon(
                         painter = painterResource(destination.iconRes),
                         contentDescription = null,
                         tint = tint,
-                        modifier = Modifier.offset(y = lift)
+                        modifier = Modifier.size(20.dp)
                     )
                     Text(
                         text = stringResource(destination.labelRes),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
                         color = tint
                     )
                 }

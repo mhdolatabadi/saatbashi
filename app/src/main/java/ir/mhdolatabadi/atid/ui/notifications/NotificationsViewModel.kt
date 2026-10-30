@@ -12,6 +12,11 @@ import ir.mhdolatabadi.atid.util.PrayerTimes
 import ir.mhdolatabadi.atid.util.PrayerTimesCalculator
 import ir.mhdolatabadi.atid.widget.PrayerWidget
 import java.util.Calendar
+import java.util.Date
+import ir.mhdolatabadi.atid.util.DateLabels
+import ir.mhdolatabadi.atid.util.DayTile
+import ir.mhdolatabadi.atid.util.DayTrack
+import ir.mhdolatabadi.atid.util.DayTracks
 
 data class PrayerTimesUiState(
     val times: PrayerTimes,
@@ -26,13 +31,23 @@ data class PrayerTimesUiState(
     val alerts: Set<String> = emptySet(),
     /** False when Android may deliver reminders a few minutes late until the user allows exact alarms. */
     val exactAlarmsAllowed: Boolean = true,
-    val notificationsAllowed: Boolean = true
+    val notificationsAllowed: Boolean = true,
+    /** The next prayer and today's track from dawn to Isha (or Isha to dawn at night). */
+    val track: DayTrack = DayTracks.dayTrack(times, 0),
+    /** Today's rows plus Shar'i midnight, each past, next or upcoming. */
+    val tiles: List<DayTile> = DayTracks.dayTiles(times, 0),
+    /** e.g. "پنجشنبه ۷ آبان ۱۴۰۵" and "۱۸ جمادی‌الاول ۱۴۴۸", on the place's clock. */
+    val solarLabel: String = "",
+    val hijriLabel: String = ""
 )
 
 class NotificationsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _uiState = MutableLiveData<PrayerTimesUiState>()
     val uiState: LiveData<PrayerTimesUiState> = _uiState
+
+    /** Whether the place is a city in Iran, whose times run on Iran's clock whatever the device's zone. */
+    private var inIran = false
 
     init {
         refresh()
@@ -45,20 +60,40 @@ class NotificationsViewModel(application: Application) : AndroidViewModel(applic
         val locationLabel = coordinates.city?.let { "به افق ${it.name}" } ?: "بر اساس موقعیت مکانی شما"
 
         val times = LocationUtils.timesForToday(coordinates)
-        _uiState.value = PrayerTimesUiState(
-            times = times,
-            locationLabel = locationLabel,
-            citySlug = coordinates.city?.slug,
-            nextPrayerKey = computeNextPrayerKey(times),
-            countdown = prayerCountdown(times, if (coordinates.city != null) iranMinutesNow() else localMinutesNow()),
-            alerts = PrayerAlertScheduler.enabled(context),
-            exactAlarmsAllowed = PrayerAlertScheduler.exactAlarmsAllowed(context),
-            notificationsAllowed = NotificationManagerCompat.from(context).areNotificationsEnabled()
+        inIran = coordinates.city != null
+        _uiState.value = withClock(
+            PrayerTimesUiState(
+                times = times,
+                locationLabel = locationLabel,
+                citySlug = coordinates.city?.slug,
+                nextPrayerKey = computeNextPrayerKey(times),
+                alerts = PrayerAlertScheduler.enabled(context),
+                exactAlarmsAllowed = PrayerAlertScheduler.exactAlarmsAllowed(context),
+                notificationsAllowed = NotificationManagerCompat.from(context).areNotificationsEnabled()
+            )
         )
         DailyNotificationHelper.show(context, times)
         // The place may have changed, which moves every adhan.
         PrayerAlertScheduler.reschedule(context)
         PrayerWidget.update(context)
+    }
+
+    /** Moves the countdown, the track and the tiles on to the current minute; the screen calls this as time passes. */
+    fun tick() {
+        _uiState.value?.let { _uiState.value = withClock(it) }
+    }
+
+    private fun withClock(state: PrayerTimesUiState): PrayerTimesUiState {
+        val now = if (inIran) iranMinutesNow() else localMinutesNow()
+        val today = Date()
+        return state.copy(
+            nextPrayerKey = computeNextPrayerKey(state.times),
+            countdown = prayerCountdown(state.times, now),
+            track = DayTracks.dayTrack(state.times, now),
+            tiles = DayTracks.dayTiles(state.times, now),
+            solarLabel = DateLabels.solar(today),
+            hijriLabel = DateLabels.hijri(today)
+        )
     }
 
     /** Turns a prayer's adhan reminder on or off. */

@@ -27,7 +27,25 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import ir.mhdolatabadi.atid.ui.BottomBarClearance
+import ir.mhdolatabadi.atid.ui.components.DayTrackView
+import ir.mhdolatabadi.atid.ui.components.HeroPill
+import ir.mhdolatabadi.atid.ui.components.LocalHero
+import ir.mhdolatabadi.atid.ui.components.SkyPage
+import ir.mhdolatabadi.atid.ui.components.heroChip
+import ir.mhdolatabadi.atid.util.DayTile
+import ir.mhdolatabadi.atid.util.MarkState
+import ir.mhdolatabadi.atid.util.PrayerTimesCalculator
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import ir.mhdolatabadi.atid.ui.components.glass
 import ir.mhdolatabadi.atid.ui.theme.Atid
 import androidx.compose.foundation.background
@@ -63,18 +81,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import ir.mhdolatabadi.atid.util.PersianDateUtils
 import ir.mhdolatabadi.atid.util.PrayerTimes
-
-private data class PrayerRowSpec(val key: String, val labelRes: Int, val timeSelector: (PrayerTimes) -> String)
-
-private val prayerRowSpecs = listOf(
-    PrayerRowSpec("fajr", R.string.label_fajr) { it.fajr },
-    PrayerRowSpec("sunrise", R.string.label_sunrise) { it.sunrise },
-    PrayerRowSpec("dhuhr", R.string.label_dhuhr) { it.dhuhr },
-    PrayerRowSpec("asr", R.string.label_asr) { it.asr },
-    PrayerRowSpec("sunset", R.string.label_sunset) { it.sunset },
-    PrayerRowSpec("maghrib", R.string.label_maghrib) { it.maghrib },
-    PrayerRowSpec("isha", R.string.label_isha) { it.isha }
-)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -118,112 +124,166 @@ fun PrayerTimesScreen(viewModel: NotificationsViewModel = viewModel()) {
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = BottomBarClearance)
-    ) {
-        Text(
-            text = stringResource(R.string.label_prayer_times),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = colors.text,
-            modifier = Modifier.padding(horizontal = 4.dp)
-        )
-        Text(
-            text = current.locationLabel,
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.muted,
-            modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 4.dp)
-        )
-
-        FlowRow(
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            CityPicker(selectedSlug = current.citySlug, onSelect = viewModel::selectCity)
-            Text(
-                text = stringResource(R.string.label_use_my_location),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = colors.accent,
-                modifier = Modifier
-                    .heightIn(min = 48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable {
-                        requestLocationPermission.launch(
-                            arrayOf(
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.ACCESS_COARSE_LOCATION
-                            )
-                        )
-                    }
-                    .wrapContentHeight()
-                    .padding(horizontal = 8.dp)
-            )
+    // Time moves on while the screen is open: the countdown, the track and the tiles follow it.
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(30_000)
+            viewModel.tick()
         }
+    }
 
-        current.countdown?.let {
+    val next = current.track.next
+    SkyPage(
+        title = stringResource(R.string.label_prayer_times),
+        hero = {
+            val hero = LocalHero.current
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CityPicker(selectedSlug = current.citySlug, onSelect = viewModel::selectCity)
+                HeroPill(current.hijriLabel)
+            }
             Text(
-                text = it,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = colors.accent,
-                modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 4.dp)
+                text = current.solarLabel,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = hero.muted,
+                modifier = Modifier.padding(top = 26.dp)
             )
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp)
-                .glass()
-                .padding(6.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            prayerRowSpecs.forEach { spec ->
-                PrayerRow(
-                    label = stringResource(spec.labelRes),
-                    time = PersianDateUtils.toPersianDigits(spec.timeSelector(current.times)),
-                    highlighted = spec.key == current.nextPrayerKey,
-                    alertOn = if (spec.key in PrayerAlertScheduler.PRAYERS) spec.key in current.alerts else null,
-                    onAlertChange = { on -> onAlertChange(spec.key, on) }
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.Bottom
+            ) {
+                Text(
+                    text = next.shortLabel,
+                    fontSize = 60.sp,
+                    lineHeight = 72.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = hero.ink,
+                    modifier = Modifier.alignByBaseline()
+                )
+                Text(
+                    text = PersianDateUtils.toPersianDigits(next.time),
+                    fontSize = 34.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = hero.muted,
+                    style = MaterialTheme.typography.displaySmall.copy(textDirection = TextDirection.Ltr),
+                    modifier = Modifier.alignByBaseline()
                 )
             }
+            Text(
+                text = "${next.label}${if (next.tomorrow) " فردا" else ""}، " +
+                    "${PrayerTimesCalculator.formatDuration(next.minutesLeft)} دیگر",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = hero.ink,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+            )
+            DayTrackView(current.track)
+        },
+        ground = {
+            val rows = current.tiles.chunked(2)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                rows.forEach { pair ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                        pair.forEach { tile ->
+                            PrayerTile(
+                                tile = tile,
+                                alertOn = if (tile.key in PrayerAlertScheduler.PRAYERS) tile.key in current.alerts else null,
+                                onAlertChange = { on -> onAlertChange(tile.key, on) },
+                                modifier = Modifier.weight(1f).fillMaxHeight()
+                            )
+                        }
+                        if (pair.size == 1) Spacer(Modifier.weight(1f))
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .fillMaxWidth()
+                    .glass(RoundedCornerShape(20.dp))
+                    .padding(start = 14.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = current.locationLabel,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.muted,
+                    modifier = Modifier.weight(1f)
+                )
+                Row(
+                    modifier = Modifier
+                        .heightIn(min = 48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable {
+                            requestLocationPermission.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                )
+                            )
+                        }
+                        .padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_location),
+                        contentDescription = null,
+                        tint = colors.accent,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.label_use_my_location),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colors.accent
+                    )
+                }
+            }
+
+            AlertHint(current, context)
+
+            Text(
+                text = "محاسبه‌ی تقریبی به روش تهران؛ ممکن است حدود یک دقیقه با جدول رسمی تفاوت داشته باشد. " +
+                    "تاریخ قمری محاسبه‌ای است و ممکن است با تقویم رسمی (رؤیت هلال) یک روز اختلاف داشته باشد.",
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.muted,
+                modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 12.dp)
+            )
         }
-
-        AlertHint(current, context)
-
-        Text(
-            text = "محاسبه‌ی تقریبی به روش تهران؛ ممکن است حدود یک دقیقه با جدول رسمی تفاوت داشته باشد.",
-            style = MaterialTheme.typography.bodySmall,
-            color = colors.muted,
-            modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 12.dp)
-        )
-    }
+    )
 }
 
+/** The place on the sky: a chip that opens the list of cities. */
 @Composable
 private fun CityPicker(selectedSlug: String?, onSelect: (String) -> Unit) {
-    val colors = Atid.colors
+    val hero = LocalHero.current
     var expanded by remember { mutableStateOf(false) }
     val label = Cities.bySlug(selectedSlug)?.name ?: "موقعیت فعلی"
     Box {
-        Text(
-            text = "شهر: $label ▾",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = colors.text,
+        Row(
             modifier = Modifier
-                .heightIn(min = 48.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .glass(RoundedCornerShape(12.dp))
-                .clickable { expanded = true }
-                .wrapContentHeight()
-                .padding(horizontal = 14.dp)
-        )
+                .heightIn(min = 44.dp)
+                .heroChip()
+                .clickable(role = Role.Button, onClickLabel = "انتخاب شهر") { expanded = true }
+                .padding(start = 16.dp, end = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = hero.ink)
+            Icon(
+                painter = painterResource(R.drawable.ic_chevron),
+                contentDescription = null,
+                tint = hero.ink,
+                modifier = Modifier.size(18.dp).graphicsLayer { rotationZ = 90f }
+            )
+        }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             Cities.all.forEach { city ->
                 DropdownMenuItem(
@@ -278,73 +338,68 @@ private fun notificationSettingsIntent(context: Context): Intent =
         Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))
     }
 
+/** One of today's times on the ground: dimmed once past, outlined in the accent when it is next. */
 @Composable
-private fun PrayerRow(
-    label: String,
-    time: String,
-    highlighted: Boolean,
+private fun PrayerTile(
+    tile: DayTile,
     alertOn: Boolean?,
-    onAlertChange: (Boolean) -> Unit
+    onAlertChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val colors = Atid.colors
-    val shape = RoundedCornerShape(12.dp)
-    val color = if (highlighted) colors.accent else colors.text
+    val shape = RoundedCornerShape(18.dp)
+    val next = tile.state == MarkState.NEXT
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(
-                if (highlighted) Modifier.background(colors.accentSoft, shape).border(1.dp, colors.accent, shape)
-                else Modifier
-            )
-            .heightIn(min = 52.dp)
-            .padding(start = 14.dp, end = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        modifier = modifier
+            .graphicsLayer { alpha = if (tile.state == MarkState.PAST) 0.6f else 1f }
+            .background(if (next) colors.accentSoft else colors.surface, shape)
+            .border(1.dp, if (next) colors.accent else colors.surfaceLine, shape)
+            .padding(start = 14.dp, top = 10.dp, bottom = 10.dp, end = 2.dp),
+        verticalAlignment = Alignment.Top
     ) {
-        Column(
-            modifier = Modifier.weight(1f).padding(vertical = 8.dp, horizontal = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (highlighted) FontWeight.Bold else FontWeight.Normal,
-                color = color
-            )
-            if (highlighted) {
+        Column(modifier = Modifier.weight(1f).padding(top = 2.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    text = stringResource(R.string.prayer_next_label),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = color
+                    text = tile.label,
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (next) colors.accent else colors.muted
                 )
-            }
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = time,
-                style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.Ltr),
-                softWrap = false,
-                fontWeight = if (highlighted) FontWeight.Bold else FontWeight.SemiBold,
-                color = color
-            )
-            if (alertOn != null) {
-                IconToggleButton(
-                    checked = alertOn,
-                    onCheckedChange = onAlertChange,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(if (alertOn) R.drawable.ic_bell else R.drawable.ic_bell_outline),
-                        contentDescription = stringResource(
-                            if (alertOn) R.string.prayer_alert_on else R.string.prayer_alert_off, label
-                        ),
-                        tint = if (alertOn) colors.accent else colors.muted
+                if (next) {
+                    Text(
+                        text = stringResource(R.string.prayer_next_label),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colors.accent,
+                        modifier = Modifier
+                            .border(1.dp, colors.accent, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 6.dp)
                     )
                 }
-            } else {
-                // Sunrise and sunset have no adhan; the spacer keeps every time in one column.
-                Spacer(modifier = Modifier.size(48.dp))
+            }
+            Text(
+                text = PersianDateUtils.toPersianDigits(tile.time),
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = colors.text,
+                softWrap = false,
+                style = MaterialTheme.typography.titleLarge.copy(textDirection = TextDirection.Ltr)
+            )
+        }
+        if (alertOn != null) {
+            IconToggleButton(
+                checked = alertOn,
+                onCheckedChange = onAlertChange,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    painter = painterResource(if (alertOn) R.drawable.ic_bell else R.drawable.ic_bell_outline),
+                    contentDescription = stringResource(
+                        if (alertOn) R.string.prayer_alert_on else R.string.prayer_alert_off, tile.label
+                    ),
+                    tint = if (alertOn) colors.accent else colors.faint,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }
